@@ -162,7 +162,7 @@ public class GlslTree {
 
     public Optional<GlslBlock> containingBlock(GlslNode node) {
         GlslBlock block = this.containingBlock(this.body, node);
-        return block != null && block.list == this.body ? Optional.of(new GlslBlock(this.mainFunction().orElseThrow().getBody(), 0)) : Optional.ofNullable(block);
+        return block != null && block.body == this.body ? Optional.of(new GlslBlock(this.mainFunction().orElseThrow().getBody(), 0)) : Optional.ofNullable(block);
     }
 
     private @Nullable GlslBlock containingBlock(GlslNodeList body, GlslNode node) {
@@ -193,9 +193,29 @@ public class GlslTree {
         return null;
     }
 
-    public record GlslBlock(GlslNodeList list, int index) {
+    /**
+     * Holds data about what block nodes are contained inside of.
+     *
+     * @param body  The body the node is inside
+     * @param index The index inside the body the node is listed
+     * @author Ocelot
+     */
+    public record GlslBlock(GlslNodeList body, int index) {
+
+        /**
+         * @return The original node
+         */
         public GlslNode node() {
-            return this.list.get(this.index);
+            return this.body.get(this.index);
+        }
+
+        /**
+         * @return The body the node is inside
+         * @deprecated Use {@link #body()} instead. Will be removed in 0.2.0
+         */
+        @Deprecated(forRemoval = true, since = "0.1.0")
+        public GlslNodeList list() {
+            return this.body();
         }
     }
 

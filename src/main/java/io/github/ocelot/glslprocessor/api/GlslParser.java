@@ -33,9 +33,9 @@ public final class GlslParser {
      *
      * @param input  The source code input
      * @param macros All macros to evaluate during pre-processing
-     * @return
-     * @throws GlslSyntaxException
-     * @throws LexerException
+     * @return A new tree of all nodes
+     * @throws GlslSyntaxException If there is a syntax error in the GLSL source code
+     * @throws LexerException      If there is any issue pre-processing the code
      */
     public static GlslTree preprocessParse(String input, Map<String, String> macros) throws GlslSyntaxException, LexerException {
         Matcher versionMatcher = VERSION_PATTERN.matcher(input);
@@ -98,6 +98,13 @@ public final class GlslParser {
         }
     }
 
+    /**
+     * Parses the specified input code into a GLSL tree.
+     *
+     * @param input The GLSL source input
+     * @return A new tree of all nodes
+     * @throws GlslSyntaxException If there is a syntax error in the GLSL source code
+     */
     public static GlslTree parse(String input) throws GlslSyntaxException {
         GlslTokenReader reader = new GlslTokenReader(input);
         GlslVersionStatement version = new GlslVersionStatement();
@@ -152,11 +159,25 @@ public final class GlslParser {
         return new GlslTree(version, body, directives, reader.getMarkedNodes());
     }
 
+    /**
+     * Parses the specified input code as a single GLSL expression.
+     *
+     * @param input The GLSL source input
+     * @return A single node
+     * @throws GlslSyntaxException If there is a syntax error in the GLSL source code
+     */
     public static GlslNode parseExpression(String input) throws GlslSyntaxException {
         return parseExpression(GlslLexer.createTokens(input + ";"));
     }
 
-    public static GlslNode parseExpression(GlslLexer.Token[] tokens) throws GlslSyntaxException {
+    /**
+     * Parses the specified token array as a single GLSL expression.
+     *
+     * @param tokens The tokens to parse
+     * @return A single node
+     * @throws GlslSyntaxException If there is a syntax error in the GLSL source code
+     */
+    public static GlslNode parseExpression(GlslLexer.Token... tokens) throws GlslSyntaxException {
         GlslTokenReader reader = new GlslTokenReader(tokens);
         List<GlslNode> expression = parseStatement(reader);
         if (expression == null) {
@@ -174,10 +195,24 @@ public final class GlslParser {
         return GlslNode.compound(expression);
     }
 
+    /**
+     * Parses the specified input code as multiple GLSL expressions. This only supports multiple statements in a list.
+     *
+     * @param input The GLSL source input
+     * @return A single node
+     * @throws GlslSyntaxException If there is a syntax error in the GLSL source code
+     */
     public static List<GlslNode> parseExpressionList(String input) throws GlslSyntaxException {
         return parseExpressionList(GlslLexer.createTokens(input));
     }
 
+    /**
+     * Parses the specified token array as multiple GLSL expressions. This only supports multiple statements in a list.
+     *
+     * @param tokens The tokens to parse
+     * @return A single node
+     * @throws GlslSyntaxException If there is a syntax error in the GLSL source code
+     */
     public static List<GlslNode> parseExpressionList(GlslLexer.Token[] tokens) throws GlslSyntaxException {
         GlslTokenReader reader = new GlslTokenReader(tokens);
         List<GlslNode> expressions = parseStatementList(reader);
@@ -186,6 +221,8 @@ public final class GlslParser {
         }
         return expressions;
     }
+
+    // INTERNAL
 
     private static @Nullable GlslNode parsePrimaryExpression(GlslTokenReader reader) {
         // IDENTIFIER
@@ -1349,12 +1386,6 @@ public final class GlslParser {
 
         reader.setCursor(cursor);
         return null;
-    }
-
-    private static @Nullable GlslNode parseTypeNameList(GlslTokenReader reader) {
-        // TYPE_NAME
-        // type_name_list COMMA TYPE_NAME
-        return null; // TODO
     }
 
     private static @Nullable GlslTypeSpecifier parseTypeSpecifier(GlslTokenReader reader) {

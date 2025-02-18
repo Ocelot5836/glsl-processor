@@ -49,7 +49,7 @@ public class GlslSpecifiedType implements GlslType {
             }
         }
 
-        this.qualifiers.add(GlslTypeQualifier.layout(Collections.singleton(new GlslTypeQualifier.LayoutId(identifier, expression))));
+        this.qualifiers.add(0, GlslTypeQualifier.layout(Collections.singleton(new GlslTypeQualifier.LayoutId(identifier, expression))));
         return this;
     }
 

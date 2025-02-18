@@ -6,10 +6,12 @@ import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
 import io.github.ocelot.glslprocessor.api.node.variable.GlslDeclarationNode;
 import io.github.ocelot.glslprocessor.api.node.variable.GlslNewNode;
 import io.github.ocelot.glslprocessor.api.node.variable.GlslStructNode;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+@ApiStatus.Experimental
 public interface GlslTreeVisitor {
 
     void visitMarkers(Map<String, GlslNode> markers);
