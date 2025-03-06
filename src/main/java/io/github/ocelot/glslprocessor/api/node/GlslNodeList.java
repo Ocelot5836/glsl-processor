@@ -8,6 +8,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.UnaryOperator;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public class GlslNodeList implements List<GlslNode> {
 
     private final ArrayList<GlslNode> nodes;

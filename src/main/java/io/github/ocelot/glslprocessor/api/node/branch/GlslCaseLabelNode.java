@@ -1,11 +1,16 @@
 package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.stream.Stream;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public class GlslCaseLabelNode implements GlslNode {
 
     private GlslNode condition;
@@ -27,6 +32,11 @@ public class GlslCaseLabelNode implements GlslNode {
     }
 
     @Override
+    public void visit(GlslNodeVisitor visitor) {
+        throw new UnsupportedOperationException("Cannot call visit() on GlslCaseLabelNode");
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null || this.getClass() != o.getClass()) {
             return false;
@@ -44,11 +54,6 @@ public class GlslCaseLabelNode implements GlslNode {
     @Override
     public String toString() {
         return "GlslCaseLabelNode{condition=" + (this.condition == null ? "default" : this.condition) + '}';
-    }
-
-    @Override
-    public String getSourceString() {
-        return this.condition == null ? "default" : "case " + this.condition.getSourceString();
     }
 
     @Override

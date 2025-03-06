@@ -1,15 +1,25 @@
 package io.github.ocelot.glslprocessor.api.node.variable;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.stream.Stream;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public class GlslVariableNode implements GlslNode {
 
     private String name;
 
     public GlslVariableNode(String name) {
         this.name = name;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitVariable(this);
     }
 
     public String getName() {
@@ -22,18 +32,8 @@ public class GlslVariableNode implements GlslNode {
     }
 
     @Override
-    public String getSourceString() {
-        return this.name;
-    }
-
-    @Override
     public Stream<GlslNode> stream() {
         return Stream.of(this);
-    }
-
-    @Override
-    public String toString() {
-        return "GlslVariableNode{name=" + this.name + '}';
     }
 
     @Override
@@ -49,5 +49,10 @@ public class GlslVariableNode implements GlslNode {
     @Override
     public int hashCode() {
         return this.name.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "GlslVariableNode{name=" + this.name + '}';
     }
 }

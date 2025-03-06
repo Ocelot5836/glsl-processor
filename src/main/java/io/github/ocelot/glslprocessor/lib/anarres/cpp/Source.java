@@ -111,7 +111,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
      */
     /* pp */
     final Source getParent() {
-        return parent;
+        return this.parent;
     }
 
 
@@ -186,7 +186,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
      * Examples of such sources are macro expansions.
      */
     /* pp */ boolean isAutopop() {
-        return autopop;
+        return this.autopop;
     }
 
     /**
@@ -203,7 +203,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
     }
 
     /* pp */ boolean isActive() {
-        return active;
+        return this.active;
     }
 
     /**
@@ -268,8 +268,8 @@ public abstract class Source implements Iterable<Token>, Closeable {
 
     protected void error(int line, int column, String msg)
             throws LexerException {
-        if (listener != null) {
-            listener.handleError(this, line, column, msg);
+        if (this.listener != null) {
+            this.listener.handleError(this, line, column, msg);
         } else {
             throw new LexerException("Error at " + line + ":" + column + ": " + msg);
         }
@@ -277,10 +277,10 @@ public abstract class Source implements Iterable<Token>, Closeable {
 
     protected void warning(int line, int column, String msg)
             throws LexerException {
-        if (werror) {
+        if (this.werror) {
             this.error(line, column, msg);
-        } else if (listener != null) {
-            listener.handleWarning(this, line, column, msg);
+        } else if (this.listener != null) {
+            this.listener.handleWarning(this, line, column, msg);
         } else {
             throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
         }

@@ -2,6 +2,8 @@ package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslNodeList;
+import io.github.ocelot.glslprocessor.api.visitor.GlslIfVisitor;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -10,14 +12,15 @@ import java.util.stream.Stream;
  * if/else
  *
  * @author Ocelot
+ * @since 1.0.0
  */
-public class GlslSelectionNode implements GlslNode {
+public class GlslIfNode implements GlslNode {
 
     private GlslNode expression;
     private final GlslNodeList first;
     private final GlslNodeList second;
 
-    public GlslSelectionNode(GlslNode expression, Collection<GlslNode> first, Collection<GlslNode> second) {
+    public GlslIfNode(GlslNode expression, Collection<GlslNode> first, Collection<GlslNode> second) {
         this.expression = expression;
         this.first = new GlslNodeList(first);
         this.second = new GlslNodeList(second);
@@ -39,34 +42,40 @@ public class GlslSelectionNode implements GlslNode {
         this.expression = expression;
     }
 
-    public GlslSelectionNode setFirst(Collection<GlslNode> first) {
+    public GlslIfNode setFirst(Collection<GlslNode> first) {
         this.first.clear();
         this.first.addAll(first);
         return this;
     }
 
-    public GlslSelectionNode setSecond(Collection<GlslNode> first) {
+    public GlslIfNode setSecond(Collection<GlslNode> first) {
         this.first.clear();
         this.first.addAll(first);
         return this;
     }
 
     @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder("if (");
-        builder.append(NEWLINE.matcher(this.expression.getSourceString()).replaceAll("\n\t")).append(") {\n");
-        for (GlslNode node : this.first) {
-            builder.append('\t').append(NEWLINE.matcher(node.getSourceString()).replaceAll("\n\t")).append(";\n");
-        }
-        builder.append("}");
-        if (!this.second.isEmpty()) {
-            builder.append(" else {\n");
-            for (GlslNode node : this.second) {
-                builder.append('\t').append(NEWLINE.matcher(node.getSourceString()).replaceAll("\n\t")).append(";\n");
+    public void visit(GlslNodeVisitor visitor) {
+        GlslIfVisitor bodyVisitor = visitor.visitIf(this);
+        if (bodyVisitor != null) {
+            GlslNodeVisitor ifVisitor = bodyVisitor.visitIf();
+            if (ifVisitor != null) {
+                for (GlslNode node : this.first) {
+                    node.visit(ifVisitor);
+                }
             }
-            builder.append("}");
+
+            if (!this.second.isEmpty()) {
+                GlslNodeVisitor elseVisitor = bodyVisitor.visitElse();
+                if (elseVisitor != null) {
+                    for (GlslNode node : this.second) {
+                        node.visit(elseVisitor);
+                    }
+                }
+            }
+
+            bodyVisitor.visitIfEnd(this);
         }
-        return builder.toString();
     }
 
     @Override
@@ -80,7 +89,7 @@ public class GlslSelectionNode implements GlslNode {
             return false;
         }
 
-        GlslSelectionNode that = (GlslSelectionNode) o;
+        GlslIfNode that = (GlslIfNode) o;
         return this.expression.equals(that.expression) && this.first.equals(that.first) && this.second.equals(that.second);
     }
 

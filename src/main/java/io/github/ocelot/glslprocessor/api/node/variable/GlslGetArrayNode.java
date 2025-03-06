@@ -1,17 +1,27 @@
 package io.github.ocelot.glslprocessor.api.node.variable;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.stream.Stream;
 
-public class GlslArrayNode implements GlslNode {
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public class GlslGetArrayNode implements GlslNode {
 
     private GlslNode expression;
     private GlslNode index;
 
-    public GlslArrayNode(GlslNode expression, GlslNode index) {
+    public GlslGetArrayNode(GlslNode expression, GlslNode index) {
         this.expression = expression;
         this.index = index;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitGetArray(this);
     }
 
     public GlslNode getExpression() {
@@ -22,19 +32,14 @@ public class GlslArrayNode implements GlslNode {
         return this.index;
     }
 
-    public GlslArrayNode setExpression(GlslNode expression) {
+    public GlslGetArrayNode setExpression(GlslNode expression) {
         this.expression = expression;
         return this;
     }
 
-    public GlslArrayNode setIndex(GlslNode index) {
+    public GlslGetArrayNode setIndex(GlslNode index) {
         this.index = index;
         return this;
-    }
-
-    @Override
-    public String getSourceString() {
-        return this.expression.getSourceString() + '[' + this.index.getSourceString() + ']';
     }
 
     @Override
@@ -48,7 +53,7 @@ public class GlslArrayNode implements GlslNode {
             return false;
         }
 
-        GlslArrayNode that = (GlslArrayNode) o;
+        GlslGetArrayNode that = (GlslGetArrayNode) o;
         return this.expression.equals(that.expression) && this.index.equals(that.index);
     }
 

@@ -67,24 +67,24 @@ import java.io.Reader;
     }
 
     private int __read() throws IOException {
-        if (uptr > 0) {
-            return unget[--uptr];
+        if (this.uptr > 0) {
+            return this.unget[--this.uptr];
         }
-        return in.read();
+        return this.in.read();
     }
 
     private void _unread(int c) {
         if (c != -1) {
-            unget[uptr++] = c;
+            this.unget[this.uptr++] = c;
         }
-        assert uptr <= unget.length :
+        assert this.uptr <= this.unget.length :
                 "JoinReader ungets too many characters";
     }
 
     protected void warning(String msg)
             throws LexerException {
-        if (source != null) {
-            source.warning(msg);
+        if (this.source != null) {
+            this.source.warning(msg);
         } else {
             throw new LexerException(msg);
         }
@@ -92,13 +92,13 @@ import java.io.Reader;
 
     private char trigraph(char raw, char repl)
             throws IOException, LexerException {
-        if (trigraphs) {
-            if (warnings) {
+        if (this.trigraphs) {
+            if (this.warnings) {
                 this.warning("trigraph ??" + raw + " converted to " + repl);
             }
             return repl;
         } else {
-            if (warnings) {
+            if (this.warnings) {
                 this.warning("trigraph ??" + raw + " ignored");
             }
             this._unread(raw);
@@ -110,7 +110,7 @@ import java.io.Reader;
     private int _read()
             throws IOException, LexerException {
         int c = this.__read();
-        if (c == '?' && (trigraphs || warnings)) {
+        if (c == '?' && (this.trigraphs || this.warnings)) {
             int d = this.__read();
             if (d == '?') {
                 int e = this.__read();
@@ -143,12 +143,12 @@ import java.io.Reader;
 
     public int read()
             throws IOException, LexerException {
-        if (flushnl) {
-            if (newlines > 0) {
-                newlines--;
+        if (this.flushnl) {
+            if (this.newlines > 0) {
+                this.newlines--;
                 return '\n';
             }
-            flushnl = false;
+            this.flushnl = false;
         }
 
         for (; ; ) {
@@ -158,10 +158,10 @@ import java.io.Reader;
                     int d = this._read();
                     switch (d) {
                         case '\n':
-                            newlines++;
+                            this.newlines++;
                             continue;
                         case '\r':
-                            newlines++;
+                            this.newlines++;
                             int e = this._read();
                             if (e != '\n') {
                                 this._unread(e);
@@ -178,11 +178,11 @@ import java.io.Reader;
                 case '\u000B':
                 case '\u000C':
                 case '\u0085':
-                    flushnl = true;
+                    this.flushnl = true;
                     return c;
                 case -1:
-                    if (newlines > 0) {
-                        newlines--;
+                    if (this.newlines > 0) {
+                        this.newlines--;
                         return '\n';
                     }
                 default:
@@ -206,12 +206,12 @@ import java.io.Reader;
     @Override
     public void close()
             throws IOException {
-        in.close();
+        this.in.close();
     }
 
     @Override
     public String toString() {
-        return "JoinReader(nl=" + newlines + ")";
+        return "JoinReader(nl=" + this.newlines + ")";
     }
 
     /*

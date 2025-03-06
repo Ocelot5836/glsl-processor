@@ -5,28 +5,50 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+/**
+ * An immutable representation of data types.
+ *
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public sealed interface GlslTypeQualifier {
-
-    String getSourceString();
 
     static GlslTypeQualifier storage(String... typeNames) {
         return new StorageSubroutine(typeNames);
     }
 
-    static Layout layout(Collection<LayoutId> ids) {
-        return new Layout(new ArrayList<>(ids));
-    }
-
+    /**
+     * Creates a new layout with the specified layout ids.
+     *
+     * @param ids The ids to hold in the layout
+     * @return A new layout
+     */
     static Layout layout(LayoutId... ids) {
         return layout(Arrays.asList(ids));
     }
 
-    static LayoutId identifierLayoutId(String identifier, @Nullable GlslNode constantExpression) {
-        return new LayoutId(identifier, constantExpression);
+    /**
+     * Creates a new layout with the specified layout ids.
+     *
+     * @param ids The ids to hold in the layout
+     * @return A new layout
+     */
+    static Layout layout(Collection<LayoutId> ids) {
+        return new Layout(List.copyOf(ids));
     }
 
-    static LayoutId sharedLayoutId() {
-        return new LayoutId("shared", null);
+    /**
+     * Creates a new layout id.
+     *
+     * @param identifier         The name of the layout id
+     * @param constantExpression The optional expression to assign it to or <code>null</code>
+     * @return A new layout id
+     */
+    static LayoutId layoutId(String identifier, @Nullable GlslNode constantExpression) {
+        if (identifier.equals("shared")) {
+            return LayoutId.SHARED;
+        }
+        return new LayoutId(identifier, constantExpression);
     }
 
     /**
@@ -40,42 +62,65 @@ public sealed interface GlslTypeQualifier {
         public String toString() {
             return "Storage[operand=SUBROUTINE, typeNames=" + Arrays.toString(this.typeNames) + "]";
         }
-
-        @Override
-        public String getSourceString() {
-            if (this.typeNames.length > 0) {
-                return "subroutine(" + String.join(",", this.typeNames) + ")";
-            }
-
-            return "subroutine";
-        }
     }
 
+    /**
+     * Type qualifier for <code>layout(location = 0, ...)</code>.
+     *
+     * @param layoutIds An immutable view of the layout ids in this layout
+     * @since 1.0.0
+     */
     record Layout(List<LayoutId> layoutIds) implements GlslTypeQualifier {
-        @Override
-        public String getSourceString() {
-            StringBuilder builder = new StringBuilder();
-            for (LayoutId layoutId : this.layoutIds) {
-                if (layoutId.shared()) {
-                    builder.append("shared, ");
-                } else {
-                    builder.append(layoutId.identifier());
-                    GlslNode expression = layoutId.expression();
-                    if (expression != null) {
-                        builder.append(" = ").append(expression.getSourceString());
-                    }
-                    builder.append(", ");
-                }
-            }
-            if (!this.layoutIds.isEmpty()) {
-                builder.delete(builder.length() - 2, builder.length());
-            }
-            return "layout(" + builder + ")";
+        /**
+         * Creates a new type qualifier with the added layout id.
+         *
+         * @param identifier         The name of the layout id
+         * @param constantExpression The optional expression to assign it to or <code>null</code>
+         * @return A new type qualifier with the added id
+         */
+        public GlslTypeQualifier addLayoutId(String identifier, @Nullable GlslNode constantExpression) {
+            return this.addLayoutIds(layoutId(identifier, constantExpression));
+        }
+
+        /**
+         * Creates a new type qualifier with the added layout ids.
+         *
+         * @param newIds The new ids to add
+         * @return A new type qualifier with the added ids
+         */
+        public GlslTypeQualifier addLayoutIds(LayoutId... newIds) {
+            return this.addLayoutIds(Arrays.asList(newIds));
+        }
+
+        /**
+         * Creates a new type qualifier with the added layout ids.
+         *
+         * @param newIds The new ids to add
+         * @return A new type qualifier with the added ids
+         */
+        public GlslTypeQualifier addLayoutIds(Collection<LayoutId> newIds) {
+            List<LayoutId> layoutIds = new ArrayList<>(this.layoutIds.size() + newIds.size());
+            layoutIds.addAll(this.layoutIds);
+            layoutIds.addAll(newIds);
+            return new Layout(Collections.unmodifiableList(layoutIds));
         }
     }
 
+    /**
+     * @param identifier The name of this layout id
+     * @param expression The expression this is assigned to or <code>null</code>
+     * @since 1.0.0
+     */
     record LayoutId(String identifier, @Nullable GlslNode expression) {
 
+        /**
+         * A constant layout id representing the "shared" keyword.
+         */
+        public static final LayoutId SHARED = new LayoutId("shared", null);
+
+        /**
+         * @return Whether this layout id is shared
+         */
         public boolean shared() {
             return "shared".equals(this.identifier);
         }
@@ -96,57 +141,26 @@ public sealed interface GlslTypeQualifier {
         VOLATILE,
         RESTRICT,
         READONLY,
-        WRITEONLY;
-
-        @Override
-        public String getSourceString() {
-            return this.name().toLowerCase(Locale.ROOT);
-        }
+        WRITEONLY
     }
 
     enum Precision implements GlslTypeQualifier {
-        HIGH_PRECISION("highp"),
-        MEDIUM_PRECISION("mediump"),
-        LOW_PRECISION("lowp");
-
-        private final String sourceName;
-
-        Precision(String sourceName) {
-            this.sourceName = sourceName;
-        }
-
-        @Override
-        public String getSourceString() {
-            return this.sourceName;
-        }
+        HIGH_PRECISION,
+        MEDIUM_PRECISION,
+        LOW_PRECISION
     }
 
     enum Interpolation implements GlslTypeQualifier {
         SMOOTH,
         FLAT,
-        NOPERSPECTIVE;
-
-        @Override
-        public String getSourceString() {
-            return this.name().toLowerCase(Locale.ROOT);
-        }
+        NOPERSPECTIVE
     }
 
     enum Invariant implements GlslTypeQualifier {
-        INVARIANT;
-
-        @Override
-        public String getSourceString() {
-            return this.name().toLowerCase(Locale.ROOT);
-        }
+        INVARIANT
     }
 
     enum Precise implements GlslTypeQualifier {
-        PRECISE;
-
-        @Override
-        public String getSourceString() {
-            return this.name().toLowerCase(Locale.ROOT);
-        }
+        PRECISE
     }
 }

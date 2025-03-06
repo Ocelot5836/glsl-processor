@@ -1,6 +1,12 @@
 package io.github.ocelot.glslprocessor.api.grammar;
 
-public class GlslStructField {
+/**
+ * Represents a single field inside a struct.
+ *
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public final class GlslStructField {
 
     private GlslSpecifiedType type;
     private String name;
@@ -28,6 +34,13 @@ public class GlslStructField {
         return this;
     }
 
+    /**
+     * @return A deep copy of this struct field
+     */
+    public GlslStructField copy() {
+        return new GlslStructField(this.type.copy(), this.name);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || this.getClass() != o.getClass()) {
@@ -43,9 +56,5 @@ public class GlslStructField {
         int result = this.type.hashCode();
         result = 31 * result + this.name.hashCode();
         return result;
-    }
-
-    public String getSourceString() {
-        return this.type.getSourceString() + " " + this.name + this.type.getPostSourceString();
     }
 }

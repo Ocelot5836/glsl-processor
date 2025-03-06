@@ -1,7 +1,9 @@
-package io.github.ocelot.glslprocessor.api.node.primary;
+package io.github.ocelot.glslprocessor.api.node.constant;
 
-import io.github.ocelot.glslprocessor.api.node.GlslConstantNode;
-
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public record GlslFloatConstantNode(float value) implements GlslConstantNode {
 
     @Override
@@ -25,12 +27,7 @@ public record GlslFloatConstantNode(float value) implements GlslConstantNode {
     }
 
     @Override
-    public String getSourceString() {
-        return Float.toString(this.value);
-    }
-
-    @Override
     public String toString() {
-        return this.getSourceString();
+        return Float.toString(this.value);
     }
 }

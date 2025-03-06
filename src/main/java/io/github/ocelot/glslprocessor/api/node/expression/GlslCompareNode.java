@@ -1,11 +1,13 @@
 package io.github.ocelot.glslprocessor.api.node.expression;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.stream.Stream;
 
 /**
  * @author Ocelot
+ * @since 1.0.0
  */
 public class GlslCompareNode implements GlslNode {
 
@@ -17,16 +19,6 @@ public class GlslCompareNode implements GlslNode {
         this.first = first;
         this.second = second;
         this.operand = operand;
-    }
-
-    @Override
-    public String getSourceString() {
-        return this.first.getSourceString() + ' ' + this.operand.getDelimiter() + ' ' + this.second.getSourceString();
-    }
-
-    @Override
-    public Stream<GlslNode> stream() {
-        return Stream.concat(Stream.of(this), Stream.concat(this.first.stream(), this.second.stream()));
     }
 
     /**
@@ -63,6 +55,16 @@ public class GlslCompareNode implements GlslNode {
     public GlslCompareNode setOperand(Operand operand) {
         this.operand = operand;
         return this;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitCompare(this);
+    }
+
+    @Override
+    public Stream<GlslNode> stream() {
+        return Stream.concat(Stream.of(this), Stream.concat(this.first.stream(), this.second.stream()));
     }
 
     @Override

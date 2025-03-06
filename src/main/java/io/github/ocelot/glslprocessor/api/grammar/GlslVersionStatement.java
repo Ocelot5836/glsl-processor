@@ -4,8 +4,9 @@ package io.github.ocelot.glslprocessor.api.grammar;
  * Represents the version statement for a GLSL shader source.
  *
  * @author Ocelot
+ * @since 1.0.0
  */
-public class GlslVersionStatement {
+public final class GlslVersionStatement {
 
     private int version;
     private boolean core;
@@ -33,6 +34,9 @@ public class GlslVersionStatement {
         return this.core;
     }
 
+    /**
+     * @return The string representation of this version
+     */
     public String getVersionStatement() {
         return this.version + (this.core ? " core" : "");
     }

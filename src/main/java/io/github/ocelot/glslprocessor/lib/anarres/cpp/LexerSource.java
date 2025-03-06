@@ -87,7 +87,7 @@ public class LexerSource extends Source {
      */
     @Override
     public int getLine() {
-        return line;
+        return this.line;
     }
 
     /**
@@ -99,7 +99,7 @@ public class LexerSource extends Source {
      */
     @Override
     public int getColumn() {
-        return column;
+        return this.column;
     }
 
     @Override
@@ -110,10 +110,10 @@ public class LexerSource extends Source {
     /* Error handling. */
     private void _error(String msg, boolean error)
             throws LexerException {
-        int _l = line;
-        int _c = column;
+        int _l = this.line;
+        int _c = this.column;
         if (_c == 0) {
-            _c = lastcolumn;
+            _c = this.lastcolumn;
             _l--;
         } else {
             _c--;
@@ -172,35 +172,35 @@ public class LexerSource extends Source {
             throws IOException,
             LexerException {
         int c;
-        assert ucount <= 2 : "Illegal ucount: " + ucount;
-        switch (ucount) {
+        assert this.ucount <= 2 : "Illegal ucount: " + this.ucount;
+        switch (this.ucount) {
             case 2:
-                ucount = 1;
-                c = u1;
+                this.ucount = 1;
+                c = this.u1;
                 break;
             case 1:
-                ucount = 0;
-                c = u0;
+                this.ucount = 0;
+                c = this.u0;
                 break;
             default:
-                if (reader == null) {
+                if (this.reader == null) {
                     c = -1;
                 } else {
-                    c = reader.read();
+                    c = this.reader.read();
                 }
                 break;
         }
 
         switch (c) {
             case '\r':
-                cr = true;
-                line++;
-                lastcolumn = column;
-                column = 0;
+                this.cr = true;
+                this.line++;
+                this.lastcolumn = this.column;
+                this.column = 0;
                 break;
             case '\n':
-                if (cr) {
-                    cr = false;
+                if (this.cr) {
+                    this.cr = false;
                     break;
                 }
                 /* fallthrough */
@@ -209,17 +209,17 @@ public class LexerSource extends Source {
             case '\u000B':
             case '\u000C':
             case '\u0085':
-                cr = false;
-                line++;
-                lastcolumn = column;
-                column = 0;
+                this.cr = false;
+                this.line++;
+                this.lastcolumn = this.column;
+                this.column = 0;
                 break;
             case -1:
-                cr = false;
+                this.cr = false;
                 break;
             default:
-                cr = false;
-                column++;
+                this.cr = false;
+                this.column++;
                 break;
         }
 
@@ -242,20 +242,20 @@ public class LexerSource extends Source {
         /* XXX Must unread newlines. */
         if (c != -1) {
             if (isLineSeparator(c)) {
-                line--;
-                column = lastcolumn;
-                cr = false;
+                this.line--;
+                this.column = this.lastcolumn;
+                this.cr = false;
             } else {
-                column--;
+                this.column--;
             }
-            switch (ucount) {
+            switch (this.ucount) {
                 case 0:
-                    u0 = c;
-                    ucount = 1;
+                    this.u0 = c;
+                    this.ucount = 1;
                     break;
                 case 1:
-                    u1 = c;
-                    ucount = 2;
+                    this.u1 = c;
+                    this.ucount = 2;
                     break;
                 default:
                     throw new IllegalStateException(
@@ -470,7 +470,7 @@ public class LexerSource extends Source {
                 break;
             } else if (c == '\\') {
                 text.append('\\');
-                if (!include) {
+                if (!this.include) {
                     char d = (char) this.escape(text);
                     buf.append(d);
                 }
@@ -765,7 +765,7 @@ public class LexerSource extends Source {
         text.append((char) c);
         for (; ; ) {
             d = this.read();
-            if (ppvalid && isLineSeparator(d)) /* XXX Ugly. */ {
+            if (this.ppvalid && isLineSeparator(d)) /* XXX Ugly. */ {
                 break;
             }
             if (Character.isWhitespace(d)) {
@@ -797,17 +797,17 @@ public class LexerSource extends Source {
             LexerException {
         Token tok = null;
 
-        int _l = line;
-        int _c = column;
+        int _l = this.line;
+        int _c = this.column;
 
         int c = this.read();
         int d;
 
         switch (c) {
             case '\n':
-                if (ppvalid) {
-                    bol = true;
-                    if (include) {
+                if (this.ppvalid) {
+                    this.bol = true;
+                    if (this.include) {
                         tok = new Token(NL, _l, _c, "\n");
                     } else {
                         int nls = 0;
@@ -833,7 +833,7 @@ public class LexerSource extends Source {
                 break;
 
             case '#':
-                if (bol) {
+                if (this.bol) {
                     tok = new Token(HASH);
                 } else {
                     tok = this.cond('#', PASTE, '#');
@@ -883,9 +883,9 @@ public class LexerSource extends Source {
                 d = this.read();
                 if (d == '=') {
                     tok = new Token(MOD_EQ);
-                } else if (digraphs && d == '>') {
+                } else if (this.digraphs && d == '>') {
                     tok = new Token('}');    // digraph
-                } else if (digraphs && d == ':') {
+                } else if (this.digraphs && d == ':') {
                     PASTE:
                     {
                         d = this.read();
@@ -911,7 +911,7 @@ public class LexerSource extends Source {
             case ':':
                 /* :: */
                 d = this.read();
-                if (digraphs && d == '>') {
+                if (this.digraphs && d == '>') {
                     tok = new Token(']');    // digraph
                 } else {
                     this.unread(d);
@@ -919,7 +919,7 @@ public class LexerSource extends Source {
                 break;
 
             case '<':
-                if (include) {
+                if (this.include) {
                     tok = this.string('<', '>');
                 } else {
                     d = this.read();
@@ -927,9 +927,9 @@ public class LexerSource extends Source {
                         tok = new Token(LE);
                     } else if (d == '<') {
                         tok = this.cond('=', LSH_EQ, LSH);
-                    } else if (digraphs && d == ':') {
+                    } else if (this.digraphs && d == ':') {
                         tok = new Token('[');    // digraph
-                    } else if (digraphs && d == '%') {
+                    } else if (this.digraphs && d == '%') {
                         tok = new Token('{');    // digraph
                     } else {
                         this.unread(d);
@@ -1027,13 +1027,13 @@ public class LexerSource extends Source {
             }
         }
 
-        if (bol) {
+        if (this.bol) {
             switch (tok.getType()) {
                 case WHITESPACE:
                 case CCOMMENT:
                     break;
                 default:
-                    bol = false;
+                    this.bol = false;
                     break;
             }
         }
@@ -1044,9 +1044,9 @@ public class LexerSource extends Source {
 
     @Override
     public void close() throws IOException {
-        if (reader != null) {
-            reader.close();
-            reader = null;
+        if (this.reader != null) {
+            this.reader.close();
+            this.reader = null;
         }
         super.close();
     }

@@ -2,6 +2,7 @@ package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslNodeList;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -11,15 +12,16 @@ import java.util.stream.Stream;
  * Represents for loops.
  *
  * @author Ocelot
+ * @since 1.0.0
  */
-public class ForLoopNode implements GlslNode {
+public class GlslForLoopNode implements GlslNode {
 
     private GlslNode init;
     private GlslNode condition;
     private GlslNode increment;
     private final GlslNodeList body;
 
-    public ForLoopNode(GlslNode init, GlslNode condition, @Nullable GlslNode increment, Collection<GlslNode> body) {
+    public GlslForLoopNode(GlslNode init, GlslNode condition, @Nullable GlslNode increment, Collection<GlslNode> body) {
         this.init = init;
         this.condition = condition;
         this.increment = increment;
@@ -43,19 +45,30 @@ public class ForLoopNode implements GlslNode {
         return this.body;
     }
 
-    public ForLoopNode setInit(GlslNode init) {
+    public GlslForLoopNode setInit(GlslNode init) {
         this.init = init;
         return this;
     }
 
-    public ForLoopNode setCondition(GlslNode condition) {
+    public GlslForLoopNode setCondition(GlslNode condition) {
         this.condition = condition;
         return this;
     }
 
-    public ForLoopNode setIncrement(@Nullable GlslNode increment) {
+    public GlslForLoopNode setIncrement(@Nullable GlslNode increment) {
         this.increment = increment;
         return this;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        GlslNodeVisitor bodyVisitor = visitor.visitForLoop(this);
+        if (bodyVisitor != null) {
+            for (GlslNode node : this.body) {
+                node.visit(bodyVisitor);
+            }
+            bodyVisitor.visitForLoopEnd(this);
+        }
     }
 
     @Override
@@ -64,7 +77,7 @@ public class ForLoopNode implements GlslNode {
             return false;
         }
 
-        ForLoopNode that = (ForLoopNode) o;
+        GlslForLoopNode that = (GlslForLoopNode) o;
         return this.init.equals(that.init) && this.condition.equals(that.condition) && this.increment.equals(that.increment) && this.body.equals(that.body);
     }
 
@@ -80,21 +93,6 @@ public class ForLoopNode implements GlslNode {
     @Override
     public String toString() {
         return "ForLoopNode{init=" + this.init + ", condition=" + this.condition + ", increment=" + this.increment + ", body=" + this.body + '}';
-    }
-
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("for (").append(this.init.getSourceString()).append("; ").append(this.condition.getSourceString()).append(';');
-        if (this.increment != null) {
-            builder.append(' ').append(this.increment.getSourceString());
-        }
-        builder.append(") {\n");
-        for (GlslNode node : this.body) {
-            builder.append('\t').append(NEWLINE.matcher(node.getSourceString()).replaceAll("\n\t")).append(";\n");
-        }
-        builder.append('}');
-        return builder.toString();
     }
 
     @Override

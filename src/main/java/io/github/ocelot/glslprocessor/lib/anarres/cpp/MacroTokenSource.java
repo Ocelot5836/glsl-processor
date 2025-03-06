@@ -111,10 +111,10 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
      * @return true if the given argumentIndex is the last argument of a variadic macro.
      */
     private boolean isVariadicArgument(int argumentIndex) {
-        if (!macro.isVariadic()) {
+        if (!this.macro.isVariadic()) {
             return false;
         }
-        return argumentIndex == args.size() - 1;
+        return argumentIndex == this.args.size() - 1;
     }
 
     /* At this point, we have consumed the first M_PASTE.
@@ -132,14 +132,14 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
         boolean comma = false;
         TOKEN:
         for (int i = 0; i < count; i++) {
-            if (!tokens.hasNext()) {
+            if (!this.tokens.hasNext()) {
                 /* XXX This one really should throw. */
                 this.error(ptok.getLine(), ptok.getColumn(),
                         "Paste at end of expansion");
                 buf.append(' ').append(ptok.getText());
                 break;
             }
-            Token tok = tokens.next();
+            Token tok = this.tokens.next();
             // System.out.println("Paste " + tok);
             switch (tok.getType()) {
                 case M_PASTE:
@@ -150,7 +150,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
                     break;
                 case M_ARG:
                     int idx = ((Integer) tok.getValue()).intValue();
-                    Argument arg = args.get(idx);
+                    Argument arg = this.args.get(idx);
                     if (comma && this.isVariadicArgument(idx) && arg.isEmpty()) {
                         // Ugly way to strip the comma.
                         buf.setLength(buf.length() - 1);
@@ -184,7 +184,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
         StringLexerSource sl = new StringLexerSource(buf.toString());
 
         /* XXX Check that concatenation produces a valid token. */
-        arg = new SourceIterator(sl);
+        this.arg = new SourceIterator(sl);
     }
 
     @Override
@@ -192,33 +192,33 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
         for (; ; ) {
             /* Deal with lexed tokens first. */
 
-            if (arg != null) {
-                if (arg.hasNext()) {
-                    Token tok = arg.next();
+            if (this.arg != null) {
+                if (this.arg.hasNext()) {
+                    Token tok = this.arg.next();
                     /* XXX PASTE -> INVALID. */
                     assert tok.getType() != M_PASTE :
                             "Unexpected paste token";
                     return tok;
                 }
-                arg = null;
+                this.arg = null;
             }
 
-            if (!tokens.hasNext()) {
+            if (!this.tokens.hasNext()) {
                 return new Token(EOF, -1, -1, "");    /* End of macro. */
             }
 
-            Token tok = tokens.next();
+            Token tok = this.tokens.next();
             int idx;
             switch (tok.getType()) {
                 case M_STRING:
                     /* Use the nonexpanded arg. */
                     idx = (Integer) tok.getValue();
-                    return this.stringify(tok, args.get(idx));
+                    return this.stringify(tok, this.args.get(idx));
                 case M_ARG:
                     /* Expand the arg. */
                     idx = (Integer) tok.getValue();
                     // System.out.println("Pushing arg " + args.get(idx));
-                    arg = args.get(idx).expansion();
+                    this.arg = this.args.get(idx).expansion();
                     break;
                 case M_PASTE:
                     this.paste(tok);
@@ -233,7 +233,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        buf.append("expansion of ").append(macro.getName());
+        buf.append("expansion of ").append(this.macro.getName());
         Source parent = this.getParent();
         if (parent != null) {
             buf.append(" in ").append(parent);

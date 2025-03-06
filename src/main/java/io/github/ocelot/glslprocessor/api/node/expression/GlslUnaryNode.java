@@ -2,10 +2,15 @@ package io.github.ocelot.glslprocessor.api.node.expression;
 
 import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public class GlslUnaryNode implements GlslNode {
 
     private GlslNode expression;
@@ -17,13 +22,8 @@ public class GlslUnaryNode implements GlslNode {
     }
 
     @Override
-    public @Nullable GlslSpecifiedType getType() {
-        return this.expression.getType();
-    }
-
-    @Override
-    public Stream<GlslNode> stream() {
-        return Stream.concat(Stream.of(this), this.expression.stream());
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitUnary(this);
     }
 
     public GlslNode getExpression() {
@@ -42,6 +42,16 @@ public class GlslUnaryNode implements GlslNode {
     public GlslUnaryNode setOperand(Operand operand) {
         this.operand = operand;
         return this;
+    }
+
+    @Override
+    public @Nullable GlslSpecifiedType getType() {
+        return this.expression.getType();
+    }
+
+    @Override
+    public Stream<GlslNode> stream() {
+        return Stream.concat(Stream.of(this), this.expression.stream());
     }
 
     @Override
@@ -64,19 +74,6 @@ public class GlslUnaryNode implements GlslNode {
         int result = this.expression.hashCode();
         result = 31 * result + this.operand.hashCode();
         return result;
-    }
-
-    @Override
-    public String getSourceString() {
-        return switch (this.operand) {
-            case PRE_INCREMENT,
-                 PRE_DECREMENT,
-                 PLUS,
-                 DASH,
-                 BANG,
-                 TILDE -> this.operand.getDelimiter() + '(' + this.expression.getSourceString() + ')';
-            case POST_INCREMENT, POST_DECREMENT -> this.expression.getSourceString() + this.operand.getDelimiter();
-        };
     }
 
     public enum Operand {

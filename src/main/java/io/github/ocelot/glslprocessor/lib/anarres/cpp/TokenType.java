@@ -35,12 +35,12 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
         TYPES.set(type, new TokenType(name, text));
     }
 
-    private static void addTokenType( int type, @NotNull String name) {
+    private static void addTokenType(int type, @NotNull String name) {
         addTokenType(type, name, null);
     }
 
     @Nullable
-    public static TokenType getTokenType( int type) {
+    public static TokenType getTokenType(int type) {
         try {
             return TYPES.get(type);
         } catch (IndexOutOfBoundsException e) {
@@ -49,7 +49,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
     }
 
     @NotNull
-    public static String getTokenName( int type) {
+    public static String getTokenName(int type) {
         TokenType tokenType = getTokenType(type);
         if (tokenType == null) {
             return "Unknown" + type;
@@ -58,7 +58,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
     }
 
     @Nullable
-    public static String getTokenText( int type) {
+    public static String getTokenText(int type) {
         TokenType tokenType = getTokenType(type);
         if (tokenType == null) {
             return null;
@@ -125,12 +125,12 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
     @Override
     @NotNull
     public String name() {
-        return name;
+        return this.name;
     }
 
     @Override
     @Nullable
     public String text() {
-        return text;
+        return this.text;
     }
 }

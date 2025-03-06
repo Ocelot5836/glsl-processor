@@ -1,11 +1,15 @@
 package io.github.ocelot.glslprocessor.api.node;
 
 import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
-import io.github.ocelot.glslprocessor.api.node.variable.GlslDeclarationNode;
-import io.github.ocelot.glslprocessor.api.node.variable.GlslNewNode;
-import io.github.ocelot.glslprocessor.api.node.variable.GlslStructNode;
+import io.github.ocelot.glslprocessor.api.node.variable.GlslNewFieldNode;
+import io.github.ocelot.glslprocessor.api.node.variable.GlslStructDeclarationNode;
+import io.github.ocelot.glslprocessor.api.node.variable.GlslVariableDeclarationNode;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public interface GlslRootNode extends GlslNode {
 
     @Nullable String getName();
@@ -13,7 +17,7 @@ public interface GlslRootNode extends GlslNode {
     GlslRootNode setName(@Nullable String name);
 
     default boolean isDeclaration() {
-        return this instanceof GlslDeclarationNode;
+        return this instanceof GlslVariableDeclarationNode;
     }
 
     default boolean isFunction() {
@@ -21,15 +25,15 @@ public interface GlslRootNode extends GlslNode {
     }
 
     default boolean isField() {
-        return this instanceof GlslNewNode;
+        return this instanceof GlslNewFieldNode;
     }
 
     default boolean isStruct() {
-        return this instanceof GlslStructNode;
+        return this instanceof GlslStructDeclarationNode;
     }
 
-    default GlslDeclarationNode asDeclaration() {
-        if (this instanceof GlslDeclarationNode node) {
+    default GlslVariableDeclarationNode asDeclaration() {
+        if (this instanceof GlslVariableDeclarationNode node) {
             return node;
         }
         throw new IllegalStateException("This node is not a GlslDeclarationNode");
@@ -42,15 +46,15 @@ public interface GlslRootNode extends GlslNode {
         throw new IllegalStateException("This node is not a GlslFunctionNode");
     }
 
-    default GlslNewNode asField() {
-        if (this instanceof GlslNewNode node) {
+    default GlslNewFieldNode asField() {
+        if (this instanceof GlslNewFieldNode node) {
             return node;
         }
         throw new IllegalStateException("This node is not a GlslNewNode");
     }
 
-    default GlslStructNode asStruct() {
-        if (this instanceof GlslStructNode node) {
+    default GlslStructDeclarationNode asStruct() {
+        if (this instanceof GlslStructDeclarationNode node) {
             return node;
         }
         throw new IllegalStateException("This node is not a GlslStructNode");

@@ -1,10 +1,15 @@
 package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public class GlslReturnNode implements GlslNode {
 
     private GlslNode value;
@@ -19,6 +24,16 @@ public class GlslReturnNode implements GlslNode {
 
     public void setValue(@Nullable GlslNode value) {
         this.value = value;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitReturn(this);
+    }
+
+    @Override
+    public Stream<GlslNode> stream() {
+        return Stream.concat(Stream.of(this), this.value.stream());
     }
 
     @Override
@@ -39,15 +54,5 @@ public class GlslReturnNode implements GlslNode {
     @Override
     public String toString() {
         return "ReturnNode{value=" + this.value + '}';
-    }
-
-    @Override
-    public String getSourceString() {
-        return this.value != null ? "return " + this.value.getSourceString() : "return";
-    }
-
-    @Override
-    public Stream<GlslNode> stream() {
-        return Stream.concat(Stream.of(this), this.value.stream());
     }
 }

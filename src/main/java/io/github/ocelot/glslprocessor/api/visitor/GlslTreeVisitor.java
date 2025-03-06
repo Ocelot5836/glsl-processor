@@ -2,33 +2,93 @@ package io.github.ocelot.glslprocessor.api.visitor;
 
 import io.github.ocelot.glslprocessor.api.grammar.GlslVersionStatement;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslTree;
 import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
-import io.github.ocelot.glslprocessor.api.node.variable.GlslDeclarationNode;
-import io.github.ocelot.glslprocessor.api.node.variable.GlslNewNode;
-import io.github.ocelot.glslprocessor.api.node.variable.GlslStructNode;
+import io.github.ocelot.glslprocessor.api.node.variable.GlslNewFieldNode;
+import io.github.ocelot.glslprocessor.api.node.variable.GlslStructDeclarationNode;
+import io.github.ocelot.glslprocessor.api.node.variable.GlslVariableDeclarationNode;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 @ApiStatus.Experimental
-public interface GlslTreeVisitor {
+public class GlslTreeVisitor {
 
-    void visitMarkers(Map<String, GlslNode> markers);
+    private final GlslTreeVisitor parent;
 
-    void visitVersion(GlslVersionStatement version);
+    public GlslTreeVisitor() {
+        this(null);
+    }
 
-    void visitDirective(String directive);
+    public GlslTreeVisitor(@Nullable GlslTreeVisitor parent) {
+        this.parent = parent;
+    }
 
-    void visitMacro(String key, String value);
+    public void visitMarkers(Map<String, GlslNode> markers) {
+        if (this.parent != null) {
+            this.parent.visitMarkers(markers);
+        }
+    }
 
-    void visitField(GlslNewNode newNode);
+    public void visitVersion(GlslVersionStatement version) {
+        if (this.parent != null) {
+            this.parent.visitVersion(version);
+        }
+    }
 
-    void visitStruct(GlslStructNode structSpecifier);
+    public void visitDirective(String directive) {
+        if (this.parent != null) {
+            this.parent.visitDirective(directive);
+        }
+    }
 
-    void visitDeclaration(GlslDeclarationNode declaration);
+    public void visitMacro(String key, String value) {
+        if (this.parent != null) {
+            this.parent.visitMacro(key, value);
+        }
+    }
 
-    @Nullable GlslFunctionVisitor visitFunction(GlslFunctionNode node);
+    public void visitNewField(GlslNewFieldNode newNode) {
+        if (this.parent != null) {
+            this.parent.visitNewField(newNode);
+        }
+    }
 
-    void visitTreeEnd();
+    public void visitStructDeclaration(GlslStructDeclarationNode structSpecifier) {
+        if (this.parent != null) {
+            this.parent.visitStructDeclaration(structSpecifier);
+        }
+    }
+
+    public void visitDeclaration(GlslVariableDeclarationNode declaration) {
+        if (this.parent != null) {
+            this.parent.visitDeclaration(declaration);
+        }
+    }
+
+    public @Nullable GlslNodeVisitor visitFunction(GlslFunctionNode node) {
+        return this.parent != null ? this.parent.visitFunction(node) : null;
+    }
+
+    public void visitFunctionEnd(GlslFunctionNode node) {
+        if (this.parent != null) {
+            this.parent.visitFunctionEnd(node);
+        }
+    }
+
+    /**
+     * Visits the end of the tree.
+     *
+     * @param tree The tree that was visited
+     */
+    public void visitTreeEnd(GlslTree tree) {
+        if (this.parent != null) {
+            this.parent.visitTreeEnd(tree);
+        }
+    }
 }

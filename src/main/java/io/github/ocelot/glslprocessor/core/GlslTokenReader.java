@@ -3,7 +3,7 @@ package io.github.ocelot.glslprocessor.core;
 import io.github.ocelot.glslprocessor.api.GlslSyntaxException;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Contract;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -77,15 +77,15 @@ public class GlslTokenReader {
         return this.canRead(1);
     }
 
-    public @Nullable GlslLexer.Token peek() {
+    public GlslLexer.Token peek() {
         return this.peek(0);
     }
 
-    public @Nullable GlslLexer.Token peek(int amount) {
+    public GlslLexer.Token peek(int amount) {
         return this.cursor + amount < this.tokens.length ? this.tokens[this.cursor + amount] : null;
     }
 
-    public @Nullable GlslLexer.TokenType peekType(int amount) {
+    public GlslLexer.TokenType peekType(int amount) {
         return this.cursor + amount < this.tokens.length ? this.tokens[this.cursor + amount].type() : null;
     }
 
@@ -119,6 +119,7 @@ public class GlslTokenReader {
         return new GlslSyntaxException(error, this.tokenString, this.getCursorOffset(this.cursor));
     }
 
+    @Contract("->fail")
     public void throwError() throws GlslSyntaxException {
         if (this.errors.isEmpty()) {
             throw new GlslSyntaxException("Failed", this.tokenString, this.cursor);

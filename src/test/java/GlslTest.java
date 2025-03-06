@@ -4,7 +4,7 @@ import io.github.ocelot.glslprocessor.api.grammar.GlslVersionStatement;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslTree;
 import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
-import io.github.ocelot.glslprocessor.api.visitor.GlslStringWriter;
+import io.github.ocelot.glslprocessor.api.visitor.GlslTreeStringWriter;
 import io.github.ocelot.glslprocessor.core.GlslLexer;
 import io.github.ocelot.glslprocessor.lib.anarres.cpp.LexerException;
 import org.junit.jupiter.api.Assertions;
@@ -37,7 +37,7 @@ public class GlslTest {
             // Load classes
             for (int i = 0; i < 10; i++) {
                 GlslTree tree = GlslParser.parse(source);
-                GlslStringWriter stringWriter = new GlslStringWriter();
+                GlslTreeStringWriter stringWriter = new GlslTreeStringWriter();
                 tree.visit(stringWriter);
             }
         }
@@ -46,12 +46,12 @@ public class GlslTest {
         GlslTree tree = GlslParser.parse(source);
         long parseEnd = System.nanoTime();
 
-        GlslStringWriter stringWriter = new GlslStringWriter();
+        GlslTreeStringWriter stringWriter = new GlslTreeStringWriter();
         tree.visit(stringWriter);
         long end = System.nanoTime();
 
         System.out.println(stringWriter);
-        System.out.printf("Took %.1fms to parse, %.1fms to stringify%n", (parseEnd - start) / 1_000_000.0F, (end - parseEnd) / 1_000_000.0F);
+        System.out.printf("Took %.3fms to parse, %.3fms to stringify%n", (parseEnd - start) / 1_000_000.0F, (end - parseEnd) / 1_000_000.0F);
 
         return tree;
     }
@@ -71,7 +71,7 @@ public class GlslTest {
 
         tree.fields().forEach(node -> node.setInitializer(replace));
 
-        GlslStringWriter stringWriter = new GlslStringWriter();
+        GlslTreeStringWriter stringWriter = new GlslTreeStringWriter();
         tree.visit(stringWriter);
 
         System.out.println(stringWriter);
@@ -246,7 +246,7 @@ public class GlslTest {
                 """);
 
         for (Map.Entry<String, GlslNode> entry : tree.getMarkers().entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue().getSourceString());
+            System.out.println(entry.getKey() + ": " + entry.getValue().toSourceString());
         }
     }
 
@@ -290,17 +290,17 @@ public class GlslTest {
         GlslFunctionNode mainImage = tree.functions().filter(fun -> fun.getHeader().getName().equals("mainImage")).findFirst().orElseThrow();
         mainImage.getBody().addAll(GlslParser.parseExpressionList("return 42;"));
 
-        GlslStringWriter writer = new GlslStringWriter();
+        GlslTreeStringWriter writer = new GlslTreeStringWriter();
         tree.visit(writer);
         System.out.println(writer);
     }
 
     @Test
     void testStruct() throws GlslSyntaxException {
-        this.testSpeed("""
+        GlslTree tree = this.testSpeed("""
                 out vec4 fragColor;
                 
-                struct AreaLightResult { vec3 position; float angle; };
+                flat struct AreaLightResult { vec3 position; float angle; };
                 AreaLightResult closestPointOnPlaneAndAngle(vec3 point, mat4 planeMatrix, vec2 planeSize) {
                     return AreaLightResult((inverse(planeMatrix) * vec4(localSpacePointOnPlane, 1.0)).xyz, angle);
                 }
@@ -309,6 +309,7 @@ public class GlslTest {
                     AreaLightResult areaLightInfo = closestPointOnPlaneAndAngle(pos, lightMat, size);
                 }
                 """);
+        Assertions.assertDoesNotThrow(tree::toSourceString);
     }
 
     @Test
@@ -352,7 +353,7 @@ public class GlslTest {
                 }
                 """, macros);
 
-        GlslStringWriter writer = new GlslStringWriter();
+        GlslTreeStringWriter writer = new GlslTreeStringWriter();
         tree.visit(writer);
         System.out.println(writer);
     }
@@ -414,5 +415,15 @@ public class GlslTest {
                     fragColor = linear_fog(vec4(color.rgb, opacity), vertexDistance, FogStart, FogEnd, FogColor);
                 }
                 """);
+    }
+
+    @Test
+    void testFor() throws GlslSyntaxException {
+        this.testSpeed("""
+                void main() {
+                    for (int i = 0; i < EndPortalLayers; i++) {
+                	    color += (textureProj(Sampler1, (texProj0 * end_portal_layer(float((i + 1))))).rgb * COLORS[i]);
+                    }
+                }""");
     }
 }

@@ -3,12 +3,18 @@ package io.github.ocelot.glslprocessor.api.grammar;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Specifies the full operand of something in GLSL in addition to all qualifiers.
+ *
+ * @author Ocelot
+ * @since 1.0.0
  */
-public class GlslSpecifiedType implements GlslType {
+public final class GlslSpecifiedType implements GlslType {
 
     private GlslTypeSpecifier specifier;
     private final List<GlslTypeQualifier> qualifiers;
@@ -18,14 +24,14 @@ public class GlslSpecifiedType implements GlslType {
         this.qualifiers = new ArrayList<>();
     }
 
-    public GlslSpecifiedType(GlslTypeSpecifier specifier, Collection<GlslTypeQualifier> qualifiers) {
-        this(specifier);
-        this.qualifiers.addAll(qualifiers);
-    }
-
     public GlslSpecifiedType(GlslTypeSpecifier specifier, GlslTypeQualifier... qualifiers) {
         this(specifier);
         this.qualifiers.addAll(Arrays.asList(qualifiers));
+    }
+
+    public GlslSpecifiedType(GlslTypeSpecifier specifier, Collection<GlslTypeQualifier> qualifiers) {
+        this(specifier);
+        this.qualifiers.addAll(qualifiers);
     }
 
     /**
@@ -42,14 +48,14 @@ public class GlslSpecifiedType implements GlslType {
      * @param expression The value to assign it to
      */
     public GlslSpecifiedType addLayoutId(String identifier, @Nullable GlslNode expression) {
-        for (GlslTypeQualifier qualifier : this.qualifiers) {
-            if (qualifier instanceof GlslTypeQualifier.Layout layout) {
-                layout.layoutIds().add(new GlslTypeQualifier.LayoutId(identifier, expression));
+        for (int i = 0; i < this.qualifiers.size(); i++) {
+            if (this.qualifiers.get(i) instanceof GlslTypeQualifier.Layout layout) {
+                this.qualifiers.set(i, layout.addLayoutId(identifier, expression));
                 return this;
             }
         }
 
-        this.qualifiers.add(0, GlslTypeQualifier.layout(Collections.singleton(new GlslTypeQualifier.LayoutId(identifier, expression))));
+        this.qualifiers.add(0, GlslTypeQualifier.layout(GlslTypeQualifier.layoutId(identifier, expression)));
         return this;
     }
 
@@ -60,12 +66,6 @@ public class GlslSpecifiedType implements GlslType {
         return this.qualifiers;
     }
 
-    /**
-     * Sets the operand of this
-     *
-     * @param specifier
-     * @return
-     */
     public GlslSpecifiedType setSpecifier(GlslTypeSpecifier specifier) {
         this.specifier = specifier;
         return this;
@@ -83,17 +83,11 @@ public class GlslSpecifiedType implements GlslType {
         return this;
     }
 
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder();
-        for (GlslTypeQualifier qualifier : this.qualifiers) {
-            builder.append(qualifier.getSourceString()).append(" ");
-        }
-        builder.append(this.specifier.getSourceString());
-        return builder.toString();
-    }
-
-    public String getPostSourceString() {
-        return this.specifier.getPostSourceString();
+    /**
+     * @return A deep copy of this type
+     */
+    public GlslSpecifiedType copy() {
+        return new GlslSpecifiedType(this.specifier, this.qualifiers);
     }
 
     @Override

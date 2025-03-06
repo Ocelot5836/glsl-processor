@@ -50,16 +50,16 @@ class FixedTokenSource extends Source {
     public Token token()
             throws IOException,
             LexerException {
-        if (idx >= tokens.size()) {
+        if (this.idx >= this.tokens.size()) {
             return EOF;
         }
-        return tokens.get(idx++);
+        return this.tokens.get(this.idx++);
     }
 
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        buf.append("constant token stream ").append(tokens);
+        buf.append("constant token stream ").append(this.tokens);
         Source parent = this.getParent();
         if (parent != null) {
             buf.append(" in ").append(parent);

@@ -1,17 +1,27 @@
 package io.github.ocelot.glslprocessor.api.node.variable;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.stream.Stream;
 
-public class GlslFieldNode implements GlslNode {
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public class GlslGetFieldNode implements GlslNode {
 
     private GlslNode expression;
     private String fieldSelection;
 
-    public GlslFieldNode(GlslNode expression, String fieldSelection) {
+    public GlslGetFieldNode(GlslNode expression, String fieldSelection) {
         this.expression = expression;
         this.fieldSelection = fieldSelection;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitGetField(this);
     }
 
     public GlslNode getExpression() {
@@ -22,22 +32,14 @@ public class GlslFieldNode implements GlslNode {
         return this.fieldSelection;
     }
 
-    public GlslFieldNode setExpression(GlslNode expression) {
+    public GlslGetFieldNode setExpression(GlslNode expression) {
         this.expression = expression;
         return this;
     }
 
-    public GlslFieldNode setFieldSelection(String fieldSelection) {
+    public GlslGetFieldNode setFieldSelection(String fieldSelection) {
         this.fieldSelection = fieldSelection;
         return this;
-    }
-
-    @Override
-    public String getSourceString() {
-        if (this.expression instanceof GlslVariableNode || this.expression instanceof GlslFieldNode) {
-            return this.expression.getSourceString() + '.' + this.fieldSelection;
-        }
-        return '(' + this.expression.getSourceString() + ")." + this.fieldSelection;
     }
 
     @Override
@@ -56,7 +58,7 @@ public class GlslFieldNode implements GlslNode {
             return false;
         }
 
-        GlslFieldNode that = (GlslFieldNode) o;
+        GlslGetFieldNode that = (GlslGetFieldNode) o;
         return this.expression.equals(that.expression) && this.fieldSelection.equals(that.fieldSelection);
     }
 

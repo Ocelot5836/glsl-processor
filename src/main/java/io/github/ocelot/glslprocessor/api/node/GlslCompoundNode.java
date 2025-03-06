@@ -1,12 +1,31 @@
 package io.github.ocelot.glslprocessor.api.node;
 
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record GlslCompoundNode(List<GlslNode> children) implements GlslNode {
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public final class GlslCompoundNode implements GlslNode {
+
+    final List<GlslNode> children;
+
+    public GlslCompoundNode(List<GlslNode> children) {
+        this.children = children;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        for (GlslNode node : this.children) {
+            node.visit(visitor);
+        }
+    }
 
     @Override
     public List<GlslNode> toList() {
@@ -18,31 +37,14 @@ public record GlslCompoundNode(List<GlslNode> children) implements GlslNode {
         return Stream.concat(Stream.of(this), this.children.stream().flatMap(GlslNode::stream));
     }
 
+    public GlslCompoundNode setChildren(GlslNode... children) {
+        return this.setChildren(Arrays.asList(children));
+    }
+
     public GlslCompoundNode setChildren(Collection<GlslNode> children) {
         this.children.clear();
         this.children.addAll(children);
         return this;
-    }
-
-    public GlslCompoundNode setChildren(GlslNode... children) {
-        this.children.clear();
-        this.children.addAll(Arrays.asList(children));
-        return this;
-    }
-
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder("{\n");
-        for (GlslNode child : this.children) {
-            builder.append('\t').append(NEWLINE.matcher(child.getSourceString()).replaceAll("\n\t")).append(";\n");
-        }
-        builder.append('}');
-        return builder.toString();
-    }
-
-    @Override
-    public String toString() {
-        return "GlslCompoundNode{children=" + this.children + '}';
     }
 
     @Override
@@ -58,5 +60,10 @@ public record GlslCompoundNode(List<GlslNode> children) implements GlslNode {
     @Override
     public int hashCode() {
         return this.children.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "GlslCompoundNode{children=" + this.children + '}';
     }
 }

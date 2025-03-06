@@ -1,21 +1,29 @@
 package io.github.ocelot.glslprocessor.api.grammar;
 
-import io.github.ocelot.glslprocessor.api.node.GlslNode;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public final class GlslStructSpecifier implements GlslTypeSpecifier {
 
     private String name;
     private final List<GlslStructField> fields;
 
-    public GlslStructSpecifier(String name, Collection<GlslStructField> fields) {
-        this.name = name;
-        this.fields = new ArrayList<>(fields);
+    GlslStructSpecifier(String name, Collection<GlslStructField> fields) {
+        this(name, new ArrayList<>(fields));
     }
 
+    private GlslStructSpecifier(String name, List<GlslStructField> fields) {
+        this.name = name;
+        this.fields = fields;
+    }
+
+    @Override
     public String getName() {
         return this.name;
     }
@@ -29,15 +37,35 @@ public final class GlslStructSpecifier implements GlslTypeSpecifier {
         return this;
     }
 
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(this.name).append(" {\n");
+    /**
+     * Sets the fields in this struct.
+     *
+     * @param fields The new fields to use
+     */
+    public GlslStructSpecifier setFields(GlslStructField... fields) {
+        return this.setFields(Arrays.asList(fields));
+    }
+
+    /**
+     * Sets the fields in this struct.
+     *
+     * @param fields The new fields to use
+     */
+    public GlslStructSpecifier setFields(Collection<GlslStructField> fields) {
+        this.fields.clear();
+        this.fields.addAll(fields);
+        return this;
+    }
+
+    /**
+     * @return A deep copy of this struct
+     */
+    public GlslStructSpecifier copy() {
+        List<GlslStructField> fields = new ArrayList<>(this.fields.size());
         for (GlslStructField field : this.fields) {
-            builder.append('\t').append(GlslNode.NEWLINE.matcher(field.getSourceString()).replaceAll("\n\t")).append(";\n");
+            fields.add(field.copy());
         }
-        builder.append('}');
-        return builder.toString();
+        return new GlslStructSpecifier(this.name, fields);
     }
 
     @Override
@@ -64,6 +92,6 @@ public final class GlslStructSpecifier implements GlslTypeSpecifier {
 
     @Override
     public String toString() {
-        return "GlslStructSpecifier{name=" + this.name + '}';
+        return "GlslStructSpecifier{name='" + this.name + "', fields=" + this.fields + '}';
     }
 }

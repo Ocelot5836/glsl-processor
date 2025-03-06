@@ -4,22 +4,32 @@ import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.grammar.GlslType;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslRootNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class GlslNewNode implements GlslRootNode {
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public class GlslNewFieldNode implements GlslRootNode {
 
     private GlslSpecifiedType type;
     private String name;
     private GlslNode initializer;
 
-    public GlslNewNode(GlslType type, @Nullable String name, @Nullable GlslNode initializer) {
+    public GlslNewFieldNode(GlslType type, @Nullable String name, @Nullable GlslNode initializer) {
         this.type = type.asSpecifiedType();
         this.name = name;
         this.initializer = initializer;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitNewField(this);
     }
 
     @Override
@@ -41,33 +51,20 @@ public class GlslNewNode implements GlslRootNode {
         return this.initializer;
     }
 
-    public GlslNewNode setType(GlslType type) {
+    public GlslNewFieldNode setType(GlslType type) {
         this.type = type.asSpecifiedType();
         return this;
     }
 
     @Override
-    public GlslNewNode setName(@Nullable String name) {
+    public GlslNewFieldNode setName(@Nullable String name) {
         this.name = name;
         return this;
     }
 
-    public GlslNewNode setInitializer(@Nullable GlslNode initializer) {
+    public GlslNewFieldNode setInitializer(@Nullable GlslNode initializer) {
         this.initializer = initializer;
         return this;
-    }
-
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder(this.type.getSourceString());
-        if (this.name != null) {
-            builder.append(' ').append(this.name);
-            builder.append(this.type.getPostSourceString());
-            if (this.initializer != null) {
-                builder.append(" = ").append(this.initializer.getSourceString());
-            }
-        }
-        return builder.toString();
     }
 
     @Override
@@ -81,7 +78,7 @@ public class GlslNewNode implements GlslRootNode {
             return false;
         }
 
-        GlslNewNode that = (GlslNewNode) o;
+        GlslNewFieldNode that = (GlslNewFieldNode) o;
         return this.type.equals(that.type) && this.name.equals(that.name) && Objects.equals(this.initializer, that.initializer);
     }
 

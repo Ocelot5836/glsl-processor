@@ -48,7 +48,7 @@ package io.github.ocelot.glslprocessor.lib.anarres.cpp;
     }
 
     /* pp */ boolean isParentActive() {
-        return parent;
+        return this.parent;
     }
 
     /* pp */ void setActive(boolean b) {
@@ -56,21 +56,21 @@ package io.github.ocelot.glslprocessor.lib.anarres.cpp;
     }
 
     /* pp */ boolean isActive() {
-        return active;
+        return this.active;
     }
 
     /* pp */ void setSawElse() {
-        sawElse = true;
+        this.sawElse = true;
     }
 
     /* pp */ boolean sawElse() {
-        return sawElse;
+        return this.sawElse;
     }
 
     @Override
     public String toString() {
-        return "parent=" + parent
-                + ", active=" + active
-                + ", sawelse=" + sawElse;
+        return "parent=" + this.parent
+                + ", active=" + this.active
+                + ", sawelse=" + this.sawElse;
     }
 }

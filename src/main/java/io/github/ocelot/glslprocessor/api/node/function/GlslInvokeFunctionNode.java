@@ -1,13 +1,18 @@
 package io.github.ocelot.glslprocessor.api.node.function;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslInvokeVisitor;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public class GlslInvokeFunctionNode implements GlslNode {
 
     private GlslNode header;
@@ -16,6 +21,21 @@ public class GlslInvokeFunctionNode implements GlslNode {
     public GlslInvokeFunctionNode(GlslNode header, Collection<GlslNode> parameters) {
         this.header = header;
         this.parameters = new ArrayList<>(parameters);
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        GlslInvokeVisitor invokeVisitor = visitor.visitFunctionInvocation(this);
+        if (invokeVisitor != null) {
+            invokeVisitor.visitHeader();
+            for (int i = 0; i < this.parameters.size(); i++) {
+                GlslNodeVisitor parameterVisitor = invokeVisitor.visitParameter(i);
+                if (parameterVisitor != null) {
+                    this.parameters.get(i).visit(parameterVisitor);
+                }
+            }
+            invokeVisitor.visitInvokeEnd(this);
+        }
     }
 
     public GlslNode getHeader() {
@@ -50,12 +70,6 @@ public class GlslInvokeFunctionNode implements GlslNode {
     @Override
     public String toString() {
         return "GlslInvokeFunctionNode{name=" + this.header + ", parameters=" + this.parameters + '}';
-    }
-
-    @Override
-    public String getSourceString() {
-        String parameters = this.parameters.stream().map(GlslNode::getSourceString).collect(Collectors.joining(", "));
-        return this.header.getSourceString() + "(" + parameters + ")";
     }
 
     @Override

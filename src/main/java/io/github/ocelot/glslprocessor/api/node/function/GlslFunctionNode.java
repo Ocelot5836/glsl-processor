@@ -6,9 +6,7 @@ import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslNodeList;
 import io.github.ocelot.glslprocessor.api.node.GlslRootNode;
-import io.github.ocelot.glslprocessor.api.node.branch.GlslReturnNode;
-import io.github.ocelot.glslprocessor.api.node.expression.GlslAssignmentNode;
-import io.github.ocelot.glslprocessor.api.visitor.GlslFunctionVisitor;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +19,7 @@ import java.util.stream.Stream;
  * Defines a function in a GLSL file with an optional body.
  *
  * @author Ocelot
+ * @since 1.0.0
  */
 public class GlslFunctionNode implements GlslRootNode {
 
@@ -32,19 +31,15 @@ public class GlslFunctionNode implements GlslRootNode {
         this.body = body != null ? new GlslNodeList(body) : null;
     }
 
-    public void visit(GlslFunctionVisitor visitor) {
-        for (GlslNode node : this.body) {
-            if (node instanceof GlslReturnNode returnNode) {
-                visitor.visitReturn(returnNode);
-                return;
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        GlslNodeVisitor bodyVisitor = visitor.visitFunctionDeclaration(this);
+        if (bodyVisitor != null) {
+            for (GlslNode node : this.body) {
+                node.visit(bodyVisitor);
             }
-            if (node instanceof GlslAssignmentNode assignmentNode) {
-                visitor.visitAssignment(assignmentNode);
-                return;
-            }
-            System.out.println(node);
+            bodyVisitor.visitFunctionDeclarationEnd(this);
         }
-        visitor.visitFunctionEnd();
     }
 
     /**
@@ -111,24 +106,6 @@ public class GlslFunctionNode implements GlslRootNode {
             this.body = null;
         }
         return true;
-    }
-
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(this.header.getSourceString());
-
-        if (this.body == null) {
-            return builder + ";";
-        }
-
-        builder.append(" {\n");
-        for (GlslNode node : this.body) {
-            builder.append('\t').append(NEWLINE.matcher(node.getSourceString()).replaceAll("\n\t")).append(";\n");
-        }
-        builder.append("}\n");
-
-        return builder.toString();
     }
 
     @Override

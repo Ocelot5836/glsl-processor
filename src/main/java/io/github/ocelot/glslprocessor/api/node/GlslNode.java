@@ -1,18 +1,43 @@
 package io.github.ocelot.glslprocessor.api.node;
 
 import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
-import io.github.ocelot.glslprocessor.api.node.primary.*;
+import io.github.ocelot.glslprocessor.api.node.constant.*;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeStringWriter;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+/**
+ * Represents a single operation in a {@link GlslTree}.
+ *
+ * @author Ocelot
+ * @since 1.0.0
+ */
+@ApiStatus.NonExtendable
 public interface GlslNode {
 
     Pattern NEWLINE = Pattern.compile("\n");
 
-    String getSourceString();
+    /**
+     * @return This node represented as a string
+     * @see GlslNodeStringWriter
+     */
+    default String toSourceString() {
+        GlslNodeStringWriter visitor = new GlslNodeStringWriter(true);
+        this.visit(visitor);
+        return visitor.toString();
+    }
+
+    /**
+     * Visits this node.
+     *
+     * @param visitor The visitor visiting this node
+     */
+    void visit(GlslNodeVisitor visitor);
 
     /**
      * @return The type of this node if it is a field
@@ -97,7 +122,7 @@ public interface GlslNode {
                 list.addAll(nodes);
                 break;
             }
-            list.addAll(compoundNode.children());
+            list.addAll(compoundNode.children);
         }
         return new GlslCompoundNode(list);
     }

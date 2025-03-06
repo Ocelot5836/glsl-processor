@@ -24,12 +24,12 @@ import java.util.Iterator;
 import java.util.List;
 
 /*
-* NOTE: This File was edited by the Veil Team based on this commit: https://github.com/shevek/jcpp/commit/5e50e75ec33f5b4567cabfd60b6baca39524a8b7
-*
-* - Updated formatting to more closely follow project standards
-* - Removed all file/IO
-* - Fixed minor errors
-*/
+ * NOTE: This File was edited by the Veil Team based on this commit: https://github.com/shevek/jcpp/commit/5e50e75ec33f5b4567cabfd60b6baca39524a8b7
+ *
+ * - Updated formatting to more closely follow project standards
+ * - Removed all file/IO
+ * - Fixed minor errors
+ */
 
 /**
  * A macro argument.
@@ -54,7 +54,7 @@ class Argument extends ArrayList<Token> {
             throws IOException,
             LexerException {
         /* Cache expansion. */
-        if (expansion == null) {
+        if (this.expansion == null) {
             this.expansion = p.expand(this);
             // System.out.println("Expanded arg " + this);
         }
@@ -62,7 +62,7 @@ class Argument extends ArrayList<Token> {
 
     @NotNull
     public Iterator<Token> expansion() {
-        return expansion.iterator();
+        return this.expansion.iterator();
     }
 
     @Override
@@ -75,10 +75,10 @@ class Argument extends ArrayList<Token> {
             buf.append(this.get(i).getText());
         }
         buf.append(" ];expansion=[ ");
-        if (expansion == null) {
+        if (this.expansion == null) {
             buf.append("null");
         } else {
-            for (Token token : expansion) {
+            for (Token token : this.expansion) {
                 buf.append(token.getText());
             }
         }

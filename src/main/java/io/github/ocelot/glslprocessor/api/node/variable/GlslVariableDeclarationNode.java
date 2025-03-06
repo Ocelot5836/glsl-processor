@@ -3,6 +3,7 @@ package io.github.ocelot.glslprocessor.api.node.variable;
 import io.github.ocelot.glslprocessor.api.grammar.GlslTypeQualifier;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslRootNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -10,14 +11,23 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class GlslDeclarationNode implements GlslRootNode {
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public class GlslVariableDeclarationNode implements GlslRootNode {
 
     private final List<GlslTypeQualifier> typeQualifiers;
     private final List<String> names;
 
-    public GlslDeclarationNode(Collection<GlslTypeQualifier> typeQualifiers, Collection<String> names) {
+    public GlslVariableDeclarationNode(Collection<GlslTypeQualifier> typeQualifiers, Collection<String> names) {
         this.typeQualifiers = new ArrayList<>(typeQualifiers);
         this.names = new ArrayList<>(names);
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitVariableDeclaration(this);
     }
 
     public List<GlslTypeQualifier> getTypeQualifiers() {
@@ -26,21 +36,6 @@ public class GlslDeclarationNode implements GlslRootNode {
 
     public List<String> getNames() {
         return this.names;
-    }
-
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder();
-        for (GlslTypeQualifier qualifier : this.typeQualifiers) {
-            builder.append(qualifier.getSourceString()).append(' ');
-        }
-        for (String name : this.names) {
-            builder.append(name).append(", ");
-        }
-        if (!this.names.isEmpty()) {
-            builder.delete(builder.length() - 2, builder.length());
-        }
-        return builder.toString().trim();
     }
 
     @Override
@@ -55,7 +50,7 @@ public class GlslDeclarationNode implements GlslRootNode {
 
     @Override
     public GlslRootNode setName(@Nullable String name) {
-        throw new UnsupportedOperationException("Use getNames() instead");
+        throw new UnsupportedOperationException("Use setNames() instead");
     }
 
     @Override
@@ -64,7 +59,7 @@ public class GlslDeclarationNode implements GlslRootNode {
             return false;
         }
 
-        GlslDeclarationNode that = (GlslDeclarationNode) o;
+        GlslVariableDeclarationNode that = (GlslVariableDeclarationNode) o;
         return this.typeQualifiers.equals(that.typeQualifiers) && this.names.equals(that.names);
     }
 

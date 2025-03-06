@@ -5,21 +5,42 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
 public sealed interface GlslTypeSpecifier extends GlslType permits GlslStructSpecifier, GlslTypeSpecifier.Array, GlslTypeSpecifier.BuiltinType, GlslTypeSpecifier.Name {
 
-    String getSourceString();
+    /**
+     * @return The GLSL name of this type
+     */
+    String getName();
 
-    default String getPostSourceString() {
-        return "";
-    }
-
+    /**
+     * @return If this type is {@link Name} or an {@link Array} of Name
+     */
     default boolean isNamed() {
         return false;
     }
 
+    /**
+     * @return If this type is {@link GlslStructSpecifier} or an {@link Array} of GlslStructSpecifier
+     */
     default boolean isStruct() {
         return false;
+    }
+
+    default GlslStructSpecifier asStructSpecifier() throws IllegalStateException {
+        GlslTypeSpecifier specifier = this;
+        while (specifier instanceof GlslTypeSpecifier.Array array) {
+            specifier = array.getSpecifier();
+        }
+        if (!(specifier instanceof GlslStructSpecifier structSpecifier)) {
+            throw new IllegalStateException("Type specifier is not a struct");
+        }
+        return structSpecifier;
     }
 
     static GlslTypeSpecifier named(String name) {
@@ -39,9 +60,22 @@ public sealed interface GlslTypeSpecifier extends GlslType permits GlslStructSpe
         return new GlslSpecifiedType(this);
     }
 
-    record Name(String name) implements GlslTypeSpecifier {
+    /**
+     * A {@link GlslTypeSpecifier} referring to a previously defined struct name.
+     *
+     * @author Ocelot
+     * @since 1.0.0
+     */
+    final class Name implements GlslTypeSpecifier {
+
+        private String name;
+
+        Name(String name) {
+            this.name = name;
+        }
+
         @Override
-        public String getSourceString() {
+        public String getName() {
             return this.name;
         }
 
@@ -49,17 +83,56 @@ public sealed interface GlslTypeSpecifier extends GlslType permits GlslStructSpe
         public boolean isNamed() {
             return true;
         }
-    }
 
-    record Array(GlslTypeSpecifier specifier, @Nullable GlslNode size) implements GlslTypeSpecifier {
-        @Override
-        public String getSourceString() {
-            return this.specifier.getSourceString();
+        public Name setName(String name) {
+            this.name = name;
+            return this;
         }
 
         @Override
-        public String getPostSourceString() {
-            return this.size != null ? "[" + this.size.getSourceString() + "]" : "[]";
+        public boolean equals(Object o) {
+            if (!(o instanceof Name name)) return false;
+            return this.name.equals(name.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return this.name.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Name[name=" + this.name + ']';
+        }
+    }
+
+    /**
+     * A {@link GlslTypeSpecifier} array.
+     *
+     * @author Ocelot
+     * @since 1.0.0
+     */
+    final class Array implements GlslTypeSpecifier {
+
+        private GlslTypeSpecifier specifier;
+        private @Nullable GlslNode size;
+
+        Array(GlslTypeSpecifier specifier, @Nullable GlslNode size) {
+            this.specifier = specifier;
+            this.size = size;
+        }
+
+        public GlslTypeSpecifier getSpecifier() {
+            return this.specifier;
+        }
+
+        public @Nullable GlslNode getSize() {
+            return this.size;
+        }
+
+        @Override
+        public String getName() {
+            return this.specifier.getName();
         }
 
         @Override
@@ -71,8 +144,52 @@ public sealed interface GlslTypeSpecifier extends GlslType permits GlslStructSpe
         public boolean isStruct() {
             return this.specifier.isStruct();
         }
+
+        public Array setSpecifier(GlslTypeSpecifier specifier) {
+            this.specifier = specifier;
+            return this;
+        }
+
+        public Array setSize(@Nullable GlslNode size) {
+            this.size = size;
+            return this;
+        }
+
+        @Deprecated(since = "0.2.0", forRemoval = true)
+        public GlslTypeSpecifier specifier() {
+            return this.specifier;
+        }
+
+        @Deprecated(since = "0.2.0", forRemoval = true)
+        public @Nullable GlslNode size() {
+            return this.size;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Array array)) return false;
+            return this.specifier.equals(array.specifier) && Objects.equals(this.size, array.size);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = this.specifier.hashCode();
+            result = 31 * result + Objects.hashCode(this.size);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "GlslTypeSpecifier.Array[specifier=" + this.specifier + ", size=" + this.size + ']';
+        }
     }
 
+    /**
+     * Base built-in GLSL types.
+     *
+     * @author Ocelot
+     * @since 1.0.0
+     */
     enum BuiltinType implements GlslTypeSpecifier {
         VOID("void"),
         FLOAT("float"),
@@ -194,10 +311,10 @@ public sealed interface GlslTypeSpecifier extends GlslType permits GlslStructSpe
         IIMAGE2DMSARRAY("iimage2DMSArray"),
         UIMAGE2DMSARRAY("uimage2DMSArray");
 
-        private final String source;
+        private final String name;
 
-        BuiltinType(String source) {
-            this.source = source;
+        BuiltinType(String name) {
+            this.name = name;
         }
 
         public String getConstant(double value) {
@@ -285,8 +402,8 @@ public sealed interface GlslTypeSpecifier extends GlslType permits GlslStructSpe
         }
 
         @Override
-        public String getSourceString() {
-            return this.source;
+        public String getName() {
+            return this.name;
         }
     }
 }

@@ -1,16 +1,20 @@
 package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
-import java.util.Locale;
 import java.util.stream.Stream;
 
-public enum JumpNode implements GlslNode {
+/**
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public enum GlslJumpNode implements GlslNode {
     CONTINUE, BREAK, DISCARD;
 
     @Override
-    public String getSourceString() {
-        return this.name().toLowerCase(Locale.ROOT);
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitJump(this);
     }
 
     @Override

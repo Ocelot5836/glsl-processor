@@ -8,22 +8,16 @@ import java.util.Collection;
  * Represents a single parameter declaration. Includes the name and full data operand of the parameter.
  *
  * @author Ocelot
+ * @since 1.0.0
  */
-public class GlslParameterDeclaration {
+public final class GlslParameterDeclaration {
 
-    private String name;
     private GlslSpecifiedType type;
+    private String name;
 
-    public GlslParameterDeclaration(@Nullable String name, GlslType type) {
+    public GlslParameterDeclaration(GlslType type, @Nullable String name) {
         this.name = name;
         this.type = type.asSpecifiedType();
-    }
-
-    /**
-     * @return The name of the parameter or <code>null</code> if declared like <code>void foo(int)</code>
-     */
-    public @Nullable String getName() {
-        return this.name;
     }
 
     /**
@@ -34,13 +28,10 @@ public class GlslParameterDeclaration {
     }
 
     /**
-     * Sets the name of this parameter.
-     *
-     * @param name The new name
+     * @return The name of the parameter or <code>null</code> if declared like <code>void foo(int)</code>
      */
-    public GlslParameterDeclaration setName(@Nullable String name) {
-        this.name = name;
-        return this;
+    public @Nullable String getName() {
+        return this.name;
     }
 
     /**
@@ -50,6 +41,16 @@ public class GlslParameterDeclaration {
      */
     public GlslParameterDeclaration setType(GlslType type) {
         this.type = type.asSpecifiedType();
+        return this;
+    }
+
+    /**
+     * Sets the name of this parameter.
+     *
+     * @param name The new name
+     */
+    public GlslParameterDeclaration setName(@Nullable String name) {
+        this.name = name;
         return this;
     }
 
@@ -73,6 +74,13 @@ public class GlslParameterDeclaration {
         return this;
     }
 
+    /**
+     * @return A deep copy of this parameter declaration
+     */
+    public GlslParameterDeclaration copy() {
+        return new GlslParameterDeclaration(this.type.copy(), this.name);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || this.getClass() != o.getClass()) {
@@ -92,6 +100,6 @@ public class GlslParameterDeclaration {
 
     @Override
     public String toString() {
-        return "GlslParameterDeclaration{name='" + this.name + "', operand=" + this.type + '}';
+        return "GlslParameterDeclaration{type='" + this.type + "', name=" + this.name + '}';
     }
 }

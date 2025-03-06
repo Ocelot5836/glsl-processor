@@ -1,11 +1,13 @@
 package io.github.ocelot.glslprocessor.api.node.expression;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.stream.Stream;
 
 /**
  * @author Ocelot
+ * @since 1.0.0
  */
 public class GlslConditionalNode implements GlslNode {
 
@@ -17,6 +19,11 @@ public class GlslConditionalNode implements GlslNode {
         this.condition = condition;
         this.first = first;
         this.second = second;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        visitor.visitCondition(this);
     }
 
     public GlslNode getCondition() {
@@ -44,11 +51,6 @@ public class GlslConditionalNode implements GlslNode {
     public GlslConditionalNode setSecond(GlslNode second) {
         this.second = second;
         return this;
-    }
-
-    @Override
-    public String getSourceString() {
-        return '(' + this.condition.getSourceString() + " ? " + this.first.getSourceString() + " : " + this.second.getSourceString() + ')';
     }
 
     @Override

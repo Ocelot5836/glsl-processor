@@ -1,6 +1,8 @@
 package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
+import io.github.ocelot.glslprocessor.api.visitor.GlslSwitchVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +14,7 @@ import java.util.stream.Stream;
  * Switch statement.
  *
  * @author Ocelot
+ * @since 1.0.0
  */
 public class GlslSwitchNode implements GlslNode {
 
@@ -27,7 +30,7 @@ public class GlslSwitchNode implements GlslNode {
      * @return The condition inside the switch <code>switch(condition) {}</code>
      */
     public GlslNode getCondition() {
-        return condition;
+        return this.condition;
     }
 
     /**
@@ -70,6 +73,27 @@ public class GlslSwitchNode implements GlslNode {
     }
 
     @Override
+    public void visit(GlslNodeVisitor visitor) {
+        GlslSwitchVisitor switchVisitor = visitor.visitSwitch(this);
+        if (switchVisitor != null) {
+            GlslNodeVisitor nodeVisitor = null;
+            for (GlslNode branch : this.branches) {
+                if (branch instanceof GlslCaseLabelNode node) {
+                    nodeVisitor = switchVisitor.visitLabel(node);
+                } else if (nodeVisitor != null) {
+                    branch.visit(nodeVisitor);
+                }
+            }
+            switchVisitor.visitSwitchEnd(this);
+        }
+    }
+
+    @Override
+    public Stream<GlslNode> stream() {
+        return Stream.concat(Stream.of(this), Stream.concat(this.condition.stream(), this.branches.stream().flatMap(GlslNode::stream)));
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null || this.getClass() != o.getClass()) {
             return false;
@@ -91,23 +115,5 @@ public class GlslSwitchNode implements GlslNode {
         return "GlslSwitchNode{" +
                 "condition=" + this.condition + ", " +
                 "branches=" + this.branches + '}';
-    }
-
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder("switch(");
-        builder.append(this.condition.getSourceString()).append(") {");
-        for (GlslNode branch : this.branches) {
-            builder.append('\t').append(branch.getSourceString());
-            builder.append(branch instanceof GlslCaseLabelNode ? ':' : ';');
-            builder.append('\n');
-        }
-        builder.append('}');
-        return builder.toString();
-    }
-
-    @Override
-    public Stream<GlslNode> stream() {
-        return Stream.concat(Stream.of(this), Stream.concat(this.condition.stream(), this.branches.stream().flatMap(GlslNode::stream)));
     }
 }

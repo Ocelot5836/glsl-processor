@@ -2,6 +2,7 @@ package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslNodeList;
+import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -10,14 +11,15 @@ import java.util.stream.Stream;
  * Represents both while and do/while loops.
  *
  * @author Ocelot
+ * @since 1.0.0
  */
-public class WhileLoopNode implements GlslNode {
+public class GlslWhileLoopNode implements GlslNode {
 
     private GlslNode condition;
     private final GlslNodeList body;
     private Type loopType;
 
-    public WhileLoopNode(GlslNode condition, Collection<GlslNode> body, Type loopType) {
+    public GlslWhileLoopNode(GlslNode condition, Collection<GlslNode> body, Type loopType) {
         this.condition = condition;
         this.body = new GlslNodeList(body);
         this.loopType = loopType;
@@ -36,14 +38,25 @@ public class WhileLoopNode implements GlslNode {
         return this.loopType;
     }
 
-    public WhileLoopNode setCondition(GlslNode condition) {
+    public GlslWhileLoopNode setCondition(GlslNode condition) {
         this.condition = condition;
         return this;
     }
 
-    public WhileLoopNode setLoopType(Type loopType) {
+    public GlslWhileLoopNode setLoopType(Type loopType) {
         this.loopType = loopType;
         return this;
+    }
+
+    @Override
+    public void visit(GlslNodeVisitor visitor) {
+        GlslNodeVisitor bodyVisitor = visitor.visitWhileLoop(this);
+        if (bodyVisitor != null) {
+            for (GlslNode node : this.body) {
+                node.visit(bodyVisitor);
+            }
+            bodyVisitor.visitWhileLoopEnd(this);
+        }
     }
 
     @Override
@@ -52,7 +65,7 @@ public class WhileLoopNode implements GlslNode {
             return false;
         }
 
-        WhileLoopNode that = (WhileLoopNode) o;
+        GlslWhileLoopNode that = (GlslWhileLoopNode) o;
         return this.condition.equals(that.condition) && this.body.equals(that.body) && this.loopType == that.loopType;
     }
 
@@ -62,16 +75,6 @@ public class WhileLoopNode implements GlslNode {
         result = 31 * result + this.body.hashCode();
         result = 31 * result + this.loopType.hashCode();
         return result;
-    }
-
-    @Override
-    public String getSourceString() {
-        StringBuilder builder = new StringBuilder("while (" + this.condition.getSourceString() + ") {\n");
-        for (GlslNode node : this.body) {
-            builder.append('\t').append(NEWLINE.matcher(node.getSourceString()).replaceAll("\n\t")).append(";\n");
-        }
-        builder.append('}');
-        return builder.toString();
     }
 
     @Override

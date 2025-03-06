@@ -2,6 +2,7 @@ package io.github.ocelot.glslprocessor.api;
 
 /**
  * @author Ocelot
+ * @since 1.0.0
  */
 public class GlslSyntaxException extends Exception {
 

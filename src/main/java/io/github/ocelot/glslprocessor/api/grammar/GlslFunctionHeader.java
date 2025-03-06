@@ -4,22 +4,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class GlslFunctionHeader {
+/**
+ * Information about a function definition, not including a body.
+ *
+ * @author Ocelot
+ * @since 1.0.0
+ */
+public final class GlslFunctionHeader {
 
     private String name;
     private GlslSpecifiedType returnType;
     private final List<GlslParameterDeclaration> parameters;
 
     public GlslFunctionHeader(String name, GlslType returnType, Collection<GlslParameterDeclaration> parameters) {
-        this.name = name;
-        this.returnType = returnType.asSpecifiedType();
-        this.parameters = new ArrayList<>(parameters);
+        this(name, returnType, new ArrayList<>(parameters));
     }
 
-    public GlslFunctionHeader withParameters(GlslParameterDeclaration... parameters) {
-        return new GlslFunctionHeader(this.name, this.returnType, new ArrayList<>(Arrays.asList(parameters)));
+    private GlslFunctionHeader(String name, GlslType returnType, List<GlslParameterDeclaration> parameters) {
+        this.name = name;
+        this.returnType = returnType.asSpecifiedType();
+        this.parameters = parameters;
     }
 
     public String getName() {
@@ -44,6 +49,37 @@ public class GlslFunctionHeader {
         return this;
     }
 
+    /**
+     * Sets the parameters in this function.
+     *
+     * @param parameters The new parameters to use
+     */
+    public GlslFunctionHeader setParameters(GlslParameterDeclaration... parameters) {
+        return this.setParameters(Arrays.asList(parameters));
+    }
+
+    /**
+     * Sets the parameters in this function.
+     *
+     * @param parameters The new parameters to use
+     */
+    public GlslFunctionHeader setParameters(Collection<GlslParameterDeclaration> parameters) {
+        this.parameters.clear();
+        this.parameters.addAll(parameters);
+        return this;
+    }
+
+    /**
+     * @return A deep copy of this function header
+     */
+    public GlslFunctionHeader copy() {
+        List<GlslParameterDeclaration> declarations = new ArrayList<>();
+        for (GlslParameterDeclaration parameter : this.parameters) {
+            declarations.add(parameter.copy());
+        }
+        return new GlslFunctionHeader(this.name, this.returnType, declarations);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || this.getClass() != o.getClass()) {
@@ -65,17 +101,5 @@ public class GlslFunctionHeader {
     @Override
     public String toString() {
         return "GlslFunctionHeader{name='" + this.name + "', returnType=" + this.returnType + ", parameters=" + this.parameters + '}';
-    }
-
-    public String getSourceString() {
-        return this.returnType.getSourceString() + this.returnType.getPostSourceString() + ' ' + this.name + '(' +
-                this.parameters.stream().map(parameter -> {
-                    String name = parameter.getName();
-                    GlslSpecifiedType type = parameter.getType();
-                    if (name != null) {
-                        return type.getSourceString() + " " + name + type.getPostSourceString();
-                    }
-                    return type.getSourceString();
-                }).collect(Collectors.joining(", ")) + ')';
     }
 }

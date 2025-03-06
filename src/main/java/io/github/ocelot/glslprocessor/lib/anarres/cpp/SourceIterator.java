@@ -51,8 +51,8 @@ public class SourceIterator implements Iterator<Token> {
      */
     private void advance() {
         try {
-            if (tok == null) {
-                tok = source.token();
+            if (this.tok == null) {
+                this.tok = this.source.token();
             }
         } catch (LexerException | IOException e) {
             throw new IllegalStateException(e);
@@ -70,7 +70,7 @@ public class SourceIterator implements Iterator<Token> {
     @Override
     public boolean hasNext() {
         this.advance();
-        return tok.getType() != EOF;
+        return this.tok.getType() != EOF;
     }
 
     /**

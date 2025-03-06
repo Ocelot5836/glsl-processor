@@ -48,47 +48,47 @@ public class NumericValue extends Number {
     private String exponent;
     private int flags;
 
-    public NumericValue( int base, @NotNull String integer) {
+    public NumericValue(int base, @NotNull String integer) {
         this.base = base;
         this.integer = integer;
     }
 
-    
+
     public int getBase() {
-        return base;
+        return this.base;
     }
 
     @NotNull
     public String getIntegerPart() {
-        return integer;
+        return this.integer;
     }
 
     @Nullable
     public String getFractionalPart() {
-        return fraction;
+        return this.fraction;
     }
 
     /* pp */ void setFractionalPart(@NotNull String fraction) {
         this.fraction = fraction;
     }
 
-    
+
     public int getExponentBase() {
-        return expbase;
+        return this.expbase;
     }
 
     @Nullable
     public String getExponent() {
-        return exponent;
+        return this.exponent;
     }
 
-    /* pp */ void setExponent( int expbase, @NotNull String exponent) {
+    /* pp */ void setExponent(int expbase, @NotNull String exponent) {
         this.expbase = expbase;
         this.exponent = exponent;
     }
 
     public int getFlags() {
-        return flags;
+        return this.flags;
     }
 
     /* pp */ void setFlags(int flags) {
@@ -150,17 +150,17 @@ public class NumericValue extends Number {
     }
 
     private int exponentValue() {
-        return Integer.parseInt(exponent, 10);
+        return Integer.parseInt(this.exponent, 10);
     }
 
     @Override
     public int intValue() {
         // String.isEmpty() is since 1.6
-        int v = integer.length() == 0 ? 0 : Integer.parseInt(integer, base);
-        if (expbase == 2) {
+        int v = this.integer.length() == 0 ? 0 : Integer.parseInt(this.integer, this.base);
+        if (this.expbase == 2) {
             v = v << this.exponentValue();
-        } else if (expbase != 0) {
-            v = (int) (v * Math.pow(expbase, this.exponentValue()));
+        } else if (this.expbase != 0) {
+            v = (int) (v * Math.pow(this.expbase, this.exponentValue()));
         }
         return v;
     }
@@ -168,11 +168,11 @@ public class NumericValue extends Number {
     @Override
     public long longValue() {
         // String.isEmpty() is since 1.6
-        long v = integer.length() == 0 ? 0 : Long.parseLong(integer, base);
-        if (expbase == 2) {
+        long v = this.integer.length() == 0 ? 0 : Long.parseLong(this.integer, this.base);
+        if (this.expbase == 2) {
             v = v << this.exponentValue();
-        } else if (expbase != 0) {
-            v = (long) (v * Math.pow(expbase, this.exponentValue()));
+        } else if (this.expbase != 0) {
+            v = (long) (v * Math.pow(this.expbase, this.exponentValue()));
         }
         return v;
     }
@@ -204,7 +204,7 @@ public class NumericValue extends Number {
     @Override
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        switch (base) {
+        switch (this.base) {
             case 8:
                 buf.append('0');
                 break;
@@ -217,7 +217,7 @@ public class NumericValue extends Number {
                 buf.append('b');
                 break;
             default:
-                buf.append("[base-").append(base).append("]");
+                buf.append("[base-").append(this.base).append("]");
                 break;
         }
         buf.append(this.getIntegerPart());
@@ -225,7 +225,7 @@ public class NumericValue extends Number {
             buf.append('.').append(this.getFractionalPart());
         }
         if (this.getExponent() != null) {
-            buf.append(base > 10 ? 'p' : 'e');
+            buf.append(this.base > 10 ? 'p' : 'e');
             buf.append(this.getExponent());
         }
         /*

@@ -64,7 +64,7 @@ public final class Token {
      * @see #getTokenName(int)
      */
     public int getType() {
-        return type;
+        return this.type;
     }
 
     /* pp */ void setLocation(int line, int column) {
@@ -82,7 +82,7 @@ public final class Token {
      */
     // Not  - might not have been assigned?
     public int getLine() {
-        return line;
+        return this.line;
     }
 
     /**
@@ -95,7 +95,7 @@ public final class Token {
      */
     // Not  - might not have been assigned?
     public int getColumn() {
-        return column;
+        return this.column;
     }
 
     /**
@@ -108,7 +108,7 @@ public final class Token {
      */
     // Not @NotNull - might not have been assigned?
     public String getText() {
-        return text;
+        return this.text;
     }
 
     /**
@@ -123,7 +123,7 @@ public final class Token {
      */
     // @Nullable    // Not useful to annotate, as we have usually checked the type before calling this.
     public Object getValue() {
-        return value;
+        return this.value;
     }
 
     /**
@@ -133,23 +133,23 @@ public final class Token {
     public String toString() {
         StringBuilder buf = new StringBuilder();
 
-        buf.append('[').append(getTokenName(type));
-        if (line != -1) {
-            buf.append('@').append(line);
-            if (column != -1) {
-                buf.append(',').append(column);
+        buf.append('[').append(getTokenName(this.type));
+        if (this.line != -1) {
+            buf.append('@').append(this.line);
+            if (this.column != -1) {
+                buf.append(',').append(this.column);
             }
         }
         buf.append("]:");
-        if (text != null) {
-            buf.append('"').append(text).append('"');
-        } else if (type > 3 && type < 256) {
-            buf.append((char) type);
+        if (this.text != null) {
+            buf.append('"').append(this.text).append('"');
+        } else if (this.type > 3 && this.type < 256) {
+            buf.append((char) this.type);
         } else {
-            buf.append('<').append(type).append('>');
+            buf.append('<').append(this.type).append('>');
         }
-        if (value != null) {
-            buf.append('=').append(value);
+        if (this.value != null) {
+            buf.append('=').append(this.value);
         }
         return buf.toString();
     }
