@@ -16,9 +16,11 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
-import java.io.Closeable;
+import org.jetbrains.annotations.ApiStatus;
+
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 
 /*
  * NOTE: This File was edited by the Veil Team based on this commit: https://github.com/shevek/jcpp/commit/5e50e75ec33f5b4567cabfd60b6baca39524a8b7
@@ -28,7 +30,8 @@ import java.io.Reader;
  * - Fixed minor errors
  */
 
-/* pp */ class JoinReader /* extends Reader */ implements Closeable {
+@ApiStatus.Internal
+class JoinReader {
 
     private final Reader in;
 
@@ -41,17 +44,13 @@ import java.io.Reader;
     private final int[] unget;
     private int uptr;
 
-    public JoinReader(Reader in, boolean trigraphs) {
-        this.in = in;
-        this.trigraphs = trigraphs;
+    public JoinReader(String in) {
+        this.in = new StringReader(in);
+        this.trigraphs = false;
         this.newlines = 0;
         this.flushnl = false;
         this.unget = new int[2];
         this.uptr = 0;
-    }
-
-    public JoinReader(Reader in) {
-        this(in, false);
     }
 
     public void setTrigraphs(boolean enable, boolean warnings) {
@@ -59,30 +58,31 @@ import java.io.Reader;
         this.warnings = warnings;
     }
 
-    /* pp */ void init(Preprocessor pp, LexerSource s) {
-        PreprocessorListener listener = pp.getListener();
+    void init(Preprocessor pp, LexerSource s) {
         this.source = s;
-        this.setTrigraphs(pp.getFeature(Feature.TRIGRAPHS),
-                pp.getWarning(Warning.TRIGRAPHS));
+        this.setTrigraphs(pp.getFeature(Feature.TRIGRAPHS), pp.getWarning(Warning.TRIGRAPHS));
     }
 
-    private int __read() throws IOException {
+    private int __read() {
         if (this.uptr > 0) {
             return this.unget[--this.uptr];
         }
-        return this.in.read();
+        try {
+            return this.in.read();
+        } catch (IOException e) {
+            // not possible
+            throw new AssertionError(e);
+        }
     }
 
     private void _unread(int c) {
         if (c != -1) {
             this.unget[this.uptr++] = c;
         }
-        assert this.uptr <= this.unget.length :
-                "JoinReader ungets too many characters";
+        assert this.uptr <= this.unget.length : "JoinReader ungets too many characters";
     }
 
-    protected void warning(String msg)
-            throws LexerException {
+    protected void warning(String msg) throws LexerException {
         if (this.source != null) {
             this.source.warning(msg);
         } else {
@@ -90,8 +90,7 @@ import java.io.Reader;
         }
     }
 
-    private char trigraph(char raw, char repl)
-            throws IOException, LexerException {
+    private char trigraph(char raw, char repl) throws LexerException {
         if (this.trigraphs) {
             if (this.warnings) {
                 this.warning("trigraph ??" + raw + " converted to " + repl);
@@ -107,8 +106,7 @@ import java.io.Reader;
         }
     }
 
-    private int _read()
-            throws IOException, LexerException {
+    private int _read() throws LexerException {
         int c = this.__read();
         if (c == '?' && (this.trigraphs || this.warnings)) {
             int d = this.__read();
@@ -141,8 +139,7 @@ import java.io.Reader;
         return c;
     }
 
-    public int read()
-            throws IOException, LexerException {
+    public int read() throws LexerException {
         if (this.flushnl) {
             if (this.newlines > 0) {
                 this.newlines--;
@@ -151,7 +148,7 @@ import java.io.Reader;
             this.flushnl = false;
         }
 
-        for (; ; ) {
+        while (true) {
             int c = this._read();
             switch (c) {
                 case '\\':
@@ -191,42 +188,8 @@ import java.io.Reader;
         }
     }
 
-    public int read(char[] cbuf, int off, int len)
-            throws IOException, LexerException {
-        for (int i = 0; i < len; i++) {
-            int ch = this.read();
-            if (ch == -1) {
-                return i;
-            }
-            cbuf[off + i] = (char) ch;
-        }
-        return len;
-    }
-
-    @Override
-    public void close()
-            throws IOException {
-        this.in.close();
-    }
-
     @Override
     public String toString() {
         return "JoinReader(nl=" + this.newlines + ")";
     }
-
-    /*
-     public static void main(String[] args) throws IOException {
-     FileReader		f = new FileReader(new File(args[0]));
-     BufferedReader	b = new BufferedReader(f);
-     JoinReader		r = new JoinReader(b);
-     BufferedWriter	w = new BufferedWriter(
-     new java.io.OutputStreamWriter(System.out)
-     );
-     int				c;
-     while ((c = r.read()) != -1) {
-     w.write((char)c);
-     }
-     w.close();
-     }
-     */
 }

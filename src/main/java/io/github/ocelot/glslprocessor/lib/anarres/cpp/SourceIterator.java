@@ -16,6 +16,7 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.EOF;
  * An Iterator for {@link Source Sources},
  * returning {@link Token Tokens}.
  */
+@ApiStatus.Internal
 public class SourceIterator implements Iterator<Token> {
 
     private final Source source;
@@ -54,7 +56,7 @@ public class SourceIterator implements Iterator<Token> {
             if (this.tok == null) {
                 this.tok = this.source.token();
             }
-        } catch (LexerException | IOException e) {
+        } catch (LexerException e) {
             throw new IllegalStateException(e);
         }
     }

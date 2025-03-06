@@ -5,6 +5,7 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author shevek
  */
+@ApiStatus.Internal
 public enum PreprocessorCommand {
 
     PP_DEFINE("define"),
@@ -38,7 +40,7 @@ public enum PreprocessorCommand {
     PP_IMPORT("import");
     private final String text;
 
-    /* pp */ PreprocessorCommand(String text) {
+    PreprocessorCommand(String text) {
         this.text = text;
     }
 

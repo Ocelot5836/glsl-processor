@@ -16,11 +16,10 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
-import io.github.ocelot.glslprocessor.lib.anarres.cpp.PreprocessorListener.SourceChangeEvent;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 
@@ -69,7 +68,8 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
  * This indicates that the following text should be treated as being
  * wrapped in an implicit extern "C" block.
  */
-public class Preprocessor implements Closeable {
+@ApiStatus.Internal
+public class Preprocessor {
 
     private static final Source INTERNAL = new Source() {
         @Override
@@ -95,17 +95,10 @@ public class Preprocessor implements Closeable {
 
     /* Miscellaneous support. */
     private int counter;
-    private final Set<String> onceseenpaths = new HashSet<>();
 
     /* Support junk to make it work like cpp */
-    private List<String> quoteincludepath;    /* -iquote */
-
-    private List<String> sysincludepath;        /* -I */
-
-    private List<String> frameworkspath;
     private final Set<Feature> features;
     private final Set<Warning> warnings;
-    private PreprocessorListener listener;
 
     public Preprocessor() {
         this.inputs = new ArrayList<>();
@@ -120,53 +113,8 @@ public class Preprocessor implements Closeable {
 
         this.counter = 0;
 
-        this.quoteincludepath = new ArrayList<>();
-        this.sysincludepath = new ArrayList<>();
-        this.frameworkspath = new ArrayList<>();
         this.features = EnumSet.noneOf(Feature.class);
         this.warnings = EnumSet.noneOf(Warning.class);
-        this.listener = null;
-    }
-
-    public Preprocessor(@NotNull Source initial) {
-        this();
-        this.addInput(initial);
-    }
-
-    /**
-     * Sets the PreprocessorListener which handles events for
-     * this Preprocessor.
-     * <p>
-     * The listener is notified of warnings, errors and source
-     * changes, amongst other things.
-     */
-    public void setListener(@NotNull PreprocessorListener listener) {
-        this.listener = listener;
-        Source s = this.source;
-        while (s != null) {
-            // s.setListener(listener);
-            s.init(this);
-            s = s.getParent();
-        }
-    }
-
-    /**
-     * Returns the PreprocessorListener which handles events for
-     * this Preprocessor.
-     */
-    @NotNull
-    public PreprocessorListener getListener() {
-        return this.listener;
-    }
-
-    /**
-     * Returns the feature-set for this Preprocessor.
-     * <p>
-     * This set may be freely modified by user code.
-     */
-    @NotNull
-    public Set<Feature> getFeatures() {
-        return this.features;
     }
 
     /**
@@ -174,20 +122,6 @@ public class Preprocessor implements Closeable {
      */
     public void addFeature(@NotNull Feature f) {
         this.features.add(f);
-    }
-
-    /**
-     * Adds features to the feature-set of this Preprocessor.
-     */
-    public void addFeatures(@NotNull Collection<Feature> f) {
-        this.features.addAll(f);
-    }
-
-    /**
-     * Adds features to the feature-set of this Preprocessor.
-     */
-    public void addFeatures(Feature... f) {
-        this.addFeatures(Arrays.asList(f));
     }
 
     /**
@@ -206,20 +140,6 @@ public class Preprocessor implements Closeable {
     @NotNull
     public Set<Warning> getWarnings() {
         return this.warnings;
-    }
-
-    /**
-     * Adds a warning to the warning-set of this Preprocessor.
-     */
-    public void addWarning(@NotNull Warning w) {
-        this.warnings.add(w);
-    }
-
-    /**
-     * Adds warnings to the warning-set of this Preprocessor.
-     */
-    public void addWarnings(@NotNull Collection<Warning> w) {
-        this.warnings.addAll(w);
     }
 
     /**
@@ -248,11 +168,7 @@ public class Preprocessor implements Closeable {
      */
     protected void error(int line, int column, @NotNull String msg)
             throws LexerException {
-        if (this.listener != null) {
-            this.listener.handleError(this.source, line, column, msg);
-        } else {
-            throw new LexerException("Error at " + line + ":" + column + ": " + msg);
-        }
+        throw new LexerException("Error at " + line + ":" + column + ": " + msg);
     }
 
     /**
@@ -278,8 +194,6 @@ public class Preprocessor implements Closeable {
             throws LexerException {
         if (this.warnings.contains(Warning.ERROR)) {
             this.error(line, column, msg);
-        } else if (this.listener != null) {
-            this.listener.handleWarning(this.source, line, column, msg);
         } else {
             throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
         }
@@ -324,22 +238,17 @@ public class Preprocessor implements Closeable {
      *
      * @throws LexerException if the definition fails or is otherwise illegal.
      */
-    public void addMacro(@NotNull String name, @NotNull String value)
-            throws LexerException {
-        try {
-            Macro m = new Macro(name);
-            StringLexerSource s = new StringLexerSource(value);
-            for (; ; ) {
-                Token tok = s.token();
-                if (tok.getType() == EOF) {
-                    break;
-                }
-                m.addToken(tok);
+    public void addMacro(@NotNull String name, @NotNull String value) throws LexerException {
+        Macro m = new Macro(name);
+        StringLexerSource s = new StringLexerSource(value);
+        while (true) {
+            Token tok = s.token();
+            if (tok.getType() == EOF) {
+                break;
             }
-            this.addMacro(m);
-        } catch (IOException e) {
-            throw new LexerException(e);
+            m.addToken(tok);
         }
+        this.addMacro(m);
     }
 
     /**
@@ -353,61 +262,6 @@ public class Preprocessor implements Closeable {
     public void addMacro(@NotNull String name)
             throws LexerException {
         this.addMacro(name, "1");
-    }
-
-    /**
-     * Sets the user include path used by this Preprocessor.
-     */
-    /* Note for future: Create an IncludeHandler? */
-    public void setQuoteIncludePath(@NotNull List<String> path) {
-        this.quoteincludepath = path;
-    }
-
-    /**
-     * Returns the user include-path of this Preprocessor.
-     * <p>
-     * This list may be freely modified by user code.
-     */
-    @NotNull
-    public List<String> getQuoteIncludePath() {
-        return this.quoteincludepath;
-    }
-
-    /**
-     * Sets the system include path used by this Preprocessor.
-     */
-    /* Note for future: Create an IncludeHandler? */
-    public void setSystemIncludePath(@NotNull List<String> path) {
-        this.sysincludepath = path;
-    }
-
-    /**
-     * Returns the system include-path of this Preprocessor.
-     * <p>
-     * This list may be freely modified by user code.
-     */
-    @NotNull
-    public List<String> getSystemIncludePath() {
-        return this.sysincludepath;
-    }
-
-    /**
-     * Sets the Objective-C frameworks path used by this Preprocessor.
-     */
-    /* Note for future: Create an IncludeHandler? */
-    public void setFrameworksPath(@NotNull List<String> path) {
-        this.frameworkspath = path;
-    }
-
-    /**
-     * Returns the Objective-C frameworks path used by this
-     * Preprocessor.
-     * <p>
-     * This list may be freely modified by user code.
-     */
-    @NotNull
-    public List<String> getFrameworksPath() {
-        return this.frameworkspath;
     }
 
     /**
@@ -449,9 +303,9 @@ public class Preprocessor implements Closeable {
         }
     }
 
-    private boolean isActive() {
+    private boolean isNotActive() {
         State state = this.states.peek();
-        return state.isParentActive() && state.isActive();
+        return !state.isParentActive() || !state.isActive();
     }
 
 
@@ -482,36 +336,19 @@ public class Preprocessor implements Closeable {
         source.init(this);
         source.setParent(this.source, autopop);
         // source.setListener(listener);
-        if (this.listener != null) {
-            this.listener.handleSourceChange(this.source, SourceChangeEvent.SUSPEND);
-        }
         this.source = source;
-        if (this.listener != null) {
-            this.listener.handleSourceChange(this.source, SourceChangeEvent.PUSH);
-        }
     }
 
     /**
      * Pops a Source from the input stack.
      *
-     * @param linemarker TODO: currently ignored, might be a bug?
-     * @throws IOException if an I/O error occurs.
      * @see #getSource()
      * @see #push_source(Source, boolean)
      */
     @Nullable
-    protected Token pop_source(boolean linemarker)
-            throws IOException {
-        if (this.listener != null) {
-            this.listener.handleSourceChange(this.source, SourceChangeEvent.POP);
-        }
+    protected Token pop_source() {
         Source s = this.source;
         this.source = s.getParent();
-        /* Always a noop unless called externally. */
-        s.close();
-        if (this.listener != null && this.source != null) {
-            this.listener.handleSourceChange(this.source, SourceChangeEvent.RESUME);
-        }
 
         Source t = this.getSource();
         if (this.getFeature(Feature.LINEMARKERS)
@@ -524,11 +361,6 @@ public class Preprocessor implements Closeable {
         }
 
         return null;
-    }
-
-    protected void pop_source()
-            throws IOException {
-        this.pop_source(false);
     }
 
     @NotNull
@@ -549,8 +381,7 @@ public class Preprocessor implements Closeable {
     @NotNull
     private Token line_token(int line, @Nullable String name, @NotNull String extra) {
         StringBuilder buf = new StringBuilder();
-        buf.append("#line ").append(line)
-                .append(" \"");
+        buf.append("#line ").append(line).append(" \"");
         /* XXX This call to escape(name) is correct but ugly. */
         if (name == null) {
             buf.append("<no file>");
@@ -562,9 +393,7 @@ public class Preprocessor implements Closeable {
     }
 
     @NotNull
-    private Token source_token()
-            throws IOException,
-            LexerException {
+    private Token source_token() throws LexerException {
         if (this.source_token != null) {
             Token tok = this.source_token;
             this.source_token = null;
@@ -584,7 +413,7 @@ public class Preprocessor implements Closeable {
             /* XXX Refactor with skipline() */
             if (tok.getType() == EOF && s.isAutopop()) {
                 // System.out.println("Autopop " + s);
-                Token mark = this.pop_source(true);
+                Token mark = this.pop_source();
                 if (mark != null) {
                     return mark;
                 }
@@ -608,9 +437,7 @@ public class Preprocessor implements Closeable {
                 || (type == CPPCOMMENT);
     }
 
-    private Token source_token_nonwhite()
-            throws IOException,
-            LexerException {
+    private Token source_token_nonwhite() throws LexerException {
         Token tok;
         do {
             tok = this.source_token();
@@ -626,16 +453,14 @@ public class Preprocessor implements Closeable {
      * <p>
      * This method can, as of recent patches, return a P_LINE token.
      */
-    private Token source_skipline(boolean white)
-            throws IOException,
-            LexerException {
+    private Token source_skipline(boolean white) throws LexerException {
         // (new Exception("skipping line")).printStackTrace(System.out);
         Source s = this.getSource();
         Token tok = s.skipline(white);
         /* XXX Refactor with source_token() */
         if (tok.getType() == EOF && s.isAutopop()) {
             // System.out.println("Autopop " + s);
-            Token mark = this.pop_source(true);
+            Token mark = this.pop_source();
             if (mark != null) {
                 return mark;
             }
@@ -653,7 +478,7 @@ public class Preprocessor implements Closeable {
         // System.out.println("pp: expanding " + m);
         if (m.isFunctionLike()) {
             OPEN:
-            for (; ; ) {
+            while (true) {
                 tok = this.source_token();
                 // System.out.println("pp: open: token is " + tok);
                 switch (tok.getType()) {
@@ -686,7 +511,7 @@ public class Preprocessor implements Closeable {
                 boolean space = false;
 
                 ARGS:
-                for (; ; ) {
+                while (true) {
                     // System.out.println("pp: arg: token is " + tok);
                     switch (tok.getType()) {
                         case EOF:
@@ -816,19 +641,12 @@ public class Preprocessor implements Closeable {
             }
             buf.append("\"");
             String text = buf.toString();
-            this.push_source(new FixedTokenSource(
-                    new Token(STRING,
-                            orig.getLine(), orig.getColumn(),
-                            text, text)), true);
+            this.push_source(new FixedTokenSource(new Token(STRING, orig.getLine(), orig.getColumn(), text, text)), true);
         } else if (m == __COUNTER__) {
             /* This could equivalently have been done by adding
              * a special Macro subclass which overrides getTokens(). */
             int value = this.counter++;
-            this.push_source(new FixedTokenSource(
-                    new Token(NUMBER,
-                            orig.getLine(), orig.getColumn(),
-                            Integer.toString(value),
-                            new NumericValue(10, Integer.toString(value)))), true);
+            this.push_source(new FixedTokenSource(new Token(NUMBER, orig.getLine(), orig.getColumn(), Integer.toString(value), new NumericValue(10, Integer.toString(value)))), true);
         } else {
             this.push_source(new MacroTokenSource(m, args), true);
         }
@@ -841,7 +659,7 @@ public class Preprocessor implements Closeable {
      */
     /* I'd rather this were done lazily, but doing so breaks spec. */
     @NotNull
-    /* pp */ List<Token> expand(@NotNull List<Token> arg)
+    List<Token> expand(@NotNull List<Token> arg)
             throws IOException,
             LexerException {
         List<Token> expansion = new ArrayList<>();
@@ -850,7 +668,7 @@ public class Preprocessor implements Closeable {
         this.push_source(new FixedTokenSource(arg), false);
 
         EXPANSION:
-        for (; ; ) {
+        while (true) {
             Token tok = this.expanded_token();
             switch (tok.getType()) {
                 case EOF:
@@ -873,15 +691,13 @@ public class Preprocessor implements Closeable {
         }
 
         // Always returns null.
-        this.pop_source(false);
+        this.pop_source();
 
         return expansion;
     }
 
     /* processes a #define directive */
-    private Token define()
-            throws IOException,
-            LexerException {
+    private Token define() throws LexerException {
         Token tok = this.source_token_nonwhite();
         if (tok.getType() != IDENTIFIER) {
             this.error(tok, "Expected identifier");
@@ -904,7 +720,7 @@ public class Preprocessor implements Closeable {
             if (tok.getType() != ')') {
                 args = new ArrayList<>();
                 ARGS:
-                for (; ; ) {
+                while (true) {
                     switch (tok.getType()) {
                         case IDENTIFIER:
                             args.add(tok.getText());
@@ -957,7 +773,6 @@ public class Preprocessor implements Closeable {
                     tok = this.source_token_nonwhite();
                 }
             } else {
-                assert tok.getType() == ')' : "Expected ')'";
                 args = Collections.emptyList();
             }
 
@@ -976,7 +791,7 @@ public class Preprocessor implements Closeable {
         /* Ensure no space at start. */
         tok = this.source_token_nonwhite();
         EXPANSION:
-        for (; ; ) {
+        while (true) {
             switch (tok.getType()) {
                 case EOF:
                     break EXPANSION;
@@ -1014,7 +829,7 @@ public class Preprocessor implements Closeable {
                         m.addToken(new Token(M_STRING,
                                 la.getLine(), la.getColumn(),
                                 "#" + la.getText(),
-                                Integer.valueOf(idx)));
+                                idx));
                     } else {
                         m.addToken(tok);
                         /* Allow for special processing. */
@@ -1035,7 +850,7 @@ public class Preprocessor implements Closeable {
                         m.addToken(new Token(M_ARG,
                                 tok.getLine(), tok.getColumn(),
                                 tok.getText(),
-                                Integer.valueOf(idx)));
+                                idx));
                     }
                     break;
 
@@ -1056,9 +871,7 @@ public class Preprocessor implements Closeable {
     }
 
     @NotNull
-    private Token undef()
-            throws IOException,
-            LexerException {
+    private Token undef() throws LexerException {
         Token tok = this.source_token_nonwhite();
         if (tok.getType() != IDENTIFIER) {
             this.error(tok,
@@ -1077,27 +890,20 @@ public class Preprocessor implements Closeable {
     }
 
     @NotNull
-    private Token include(boolean next)
-            throws IOException,
-            LexerException {
+    private Token include() throws IOException, LexerException {
         LexerSource lexer = (LexerSource) this.source;
         try {
             lexer.setInclude(true);
             Token tok = this.token_nonwhite();
 
-            String name;
-            boolean quoted;
-
             if (tok.getType() == STRING) {
                 /* XXX Use the original text, not the value.
                  * Backslashes must not be treated as escapes here. */
-                StringBuilder buf = new StringBuilder((String) tok.getValue());
                 HEADER:
-                for (; ; ) {
+                while (true) {
                     tok = this.token_nonwhite();
                     switch (tok.getType()) {
                         case STRING:
-                            buf.append((String) tok.getValue());
                             break;
                         case NL:
                         case EOF:
@@ -1108,11 +914,7 @@ public class Preprocessor implements Closeable {
                             return this.source_skipline(false);
                     }
                 }
-                name = buf.toString();
-                quoted = true;
             } else if (tok.getType() == HEADER) {
-                name = (String) tok.getValue();
-                quoted = false;
                 tok = this.source_skipline(true);
             } else {
                 this.error(tok,
@@ -1136,9 +938,7 @@ public class Preprocessor implements Closeable {
         }
     }
 
-    protected void pragma(@NotNull Token name, @NotNull List<Token> value)
-            throws IOException,
-            LexerException {
+    protected void pragma(@NotNull Token name) throws LexerException {
         if (this.getFeature(Feature.PRAGMA_ONCE)) {
             if ("once".equals(name.getText())) {
                 return;
@@ -1148,13 +948,11 @@ public class Preprocessor implements Closeable {
     }
 
     @NotNull
-    private Token pragma()
-            throws IOException,
-            LexerException {
+    private Token pragma() throws LexerException {
         Token name;
 
         NAME:
-        for (; ; ) {
+        while (true) {
             Token tok = this.source_token();
             switch (tok.getType()) {
                 case EOF:
@@ -1172,7 +970,7 @@ public class Preprocessor implements Closeable {
                 case CCOMMENT:
                 case CPPCOMMENT:
                 case WHITESPACE:
-                    continue NAME;
+                    continue;
                 case IDENTIFIER:
                     name = tok;
                     break NAME;
@@ -1184,9 +982,8 @@ public class Preprocessor implements Closeable {
         }
 
         Token tok;
-        List<Token> value = new ArrayList<>();
         VALUE:
-        for (; ; ) {
+        while (true) {
             tok = this.source_token();
             switch (tok.getType()) {
                 case EOF:
@@ -1199,31 +996,25 @@ public class Preprocessor implements Closeable {
                 case NL:
                     /* This may contain one or more newlines. */
                     break VALUE;
-                case CCOMMENT:
-                case CPPCOMMENT:
-                    break;
                 default:
-                    value.add(tok);
                     break;
             }
         }
 
-        this.pragma(name, value);
+        this.pragma(name);
 
         return tok;    /* The NL. */
 
     }
 
     /* For #error and #warning. */
-    private void error(@NotNull Token pptok, boolean is_error)
-            throws IOException,
-            LexerException {
+    private void error(@NotNull Token pptok, boolean is_error) throws LexerException {
         StringBuilder buf = new StringBuilder();
         buf.append('#').append(pptok.getText()).append(' ');
         /* Peculiar construction to ditch first whitespace. */
         Token tok = this.source_token_nonwhite();
         ERROR:
-        for (; ; ) {
+        while (true) {
             switch (tok.getType()) {
                 case NL:
                 case EOF:
@@ -1248,7 +1039,7 @@ public class Preprocessor implements Closeable {
     private Token expanded_token()
             throws IOException,
             LexerException {
-        for (; ; ) {
+        while (true) {
             Token tok = this.source_token();
             // System.out.println("Source token is " + tok);
             if (tok.getType() == IDENTIFIER) {
@@ -1338,69 +1129,37 @@ public class Preprocessor implements Closeable {
         return tok;
     }
 
-    private void expr_untoken(@NotNull Token tok)
-            throws LexerException {
+    private void expr_untoken(@NotNull Token tok) {
         if (this.expr_token != null) {
-            throw new InternalException(
-                    "Cannot unget two expression tokens."
-            );
+            throw new AssertionError("Cannot unget two expression tokens.");
         }
         this.expr_token = tok;
     }
 
     private int expr_priority(@NotNull Token op) {
-        switch (op.getType()) {
-            case '/':
-                return 11;
-            case '%':
-                return 11;
-            case '*':
-                return 11;
-            case '+':
-                return 10;
-            case '-':
-                return 10;
-            case LSH:
-                return 9;
-            case RSH:
-                return 9;
-            case '<':
-                return 8;
-            case '>':
-                return 8;
-            case LE:
-                return 8;
-            case GE:
-                return 8;
-            case EQ:
-                return 7;
-            case NE:
-                return 7;
-            case '&':
-                return 6;
-            case '^':
-                return 5;
-            case '|':
-                return 4;
-            case LAND:
-                return 3;
-            case LOR:
-                return 2;
-            case '?':
-                return 1;
-            default:
-                // System.out.println("Unrecognised operator " + op);
-                return 0;
-        }
+        return switch (op.getType()) {
+            case '/', '%', '*' -> 11;
+            case '+', '-' -> 10;
+            case LSH, RSH -> 9;
+            case '<', '>', LE, GE -> 8;
+            case EQ, NE -> 7;
+            case '&' -> 6;
+            case '^' -> 5;
+            case '|' -> 4;
+            case LAND -> 3;
+            case LOR -> 2;
+            case '?' -> 1;
+            default -> 0;
+        };
     }
 
     private int expr_char(Token token) {
         Object value = token.getValue();
-        if (value instanceof Character) {
-            return ((Character) value).charValue();
+        if (value instanceof Character character) {
+            return character;
         }
         String text = String.valueOf(value);
-        if (text.length() == 0) {
+        if (text.isBlank()) {
             return 0;
         }
         return text.charAt(0);
@@ -1459,7 +1218,7 @@ public class Preprocessor implements Closeable {
                 return 0;
         }
 
-        for (; ; ) {
+        while (true) {
             // System.out.println("expr: lhs is " + lhs + ", pri = " + priority);
             Token op = this.expr_token();
             int pri = this.expr_priority(op);    /* 0 if not a binop. */
@@ -1608,9 +1367,9 @@ public class Preprocessor implements Closeable {
             throws IOException,
             LexerException {
 
-        for (; ; ) {
+        while (true) {
             Token tok;
-            if (!this.isActive()) {
+            if (this.isNotActive()) {
                 Source s = this.getSource();
                 if (s == null) {
                     Token t = this.next_source();
@@ -1620,14 +1379,7 @@ public class Preprocessor implements Closeable {
                     return t;
                 }
 
-                try {
-                    /* XXX Tell lexer to ignore warnings. */
-                    s.setActive(false);
-                    tok = this.source_token();
-                } finally {
-                    /* XXX Tell lexer to stop ignoring warnings. */
-                    s.setActive(true);
-                }
+                tok = this.source_token();
                 switch (tok.getType()) {
                     case HASH:
                     case NL:
@@ -1642,7 +1394,7 @@ public class Preprocessor implements Closeable {
                         if (this.getFeature(Feature.KEEPALLCOMMENTS)) {
                             return tok;
                         }
-                        if (!this.isActive()) {
+                        if (this.isNotActive()) {
                             return this.toWhitespace(tok);
                         }
                         if (this.getFeature(Feature.KEEPCOMMENTS)) {
@@ -1762,12 +1514,10 @@ public class Preprocessor implements Closeable {
                     return tok;
 
                 default:
-                    throw new InternalException("Bad token " + tok);
-                    // break;
+                    throw new AssertionError("Bad token " + tok);
 
                 case HASH:
                     tok = this.source_token_nonwhite();
-                    // (new Exception("here")).printStackTrace();
                     switch (tok.getType()) {
                         case NL:
                             break LEX;    /* Some code has #\n */
@@ -1775,23 +1525,18 @@ public class Preprocessor implements Closeable {
                         case IDENTIFIER:
                             break;
                         default:
-                            this.error(tok,
-                                    "Preprocessor directive not a word "
-                                            + tok.getText());
+                            this.error(tok, "Preprocessor directive not a word " + tok.getText());
                             return this.source_skipline(false);
                     }
                     PreprocessorCommand ppcmd = PreprocessorCommand.forText(tok.getText());
                     if (ppcmd == null) {
-                        this.error(tok,
-                                "Unknown preprocessor directive "
-                                        + tok.getText());
+                        this.error(tok, "Unknown preprocessor directive " + tok.getText());
                         return this.source_skipline(false);
                     }
 
                     switch (ppcmd) {
-
                         case PP_DEFINE:
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             } else {
                                 return this.define();
@@ -1799,7 +1544,7 @@ public class Preprocessor implements Closeable {
                             // break;
 
                         case PP_UNDEF:
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             } else {
                                 return this.undef();
@@ -1807,14 +1552,14 @@ public class Preprocessor implements Closeable {
                             // break;
 
                         case PP_INCLUDE:
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             } else {
-                                return this.include(false);
+                                return this.include();
                             }
                             // break;
                         case PP_INCLUDE_NEXT:
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             }
                             if (!this.getFeature(Feature.INCLUDENEXT)) {
@@ -1823,12 +1568,12 @@ public class Preprocessor implements Closeable {
                                 );
                                 return this.source_skipline(false);
                             }
-                            return this.include(true);
+                            return this.include();
                         // break;
 
                         case PP_WARNING:
                         case PP_ERROR:
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             } else {
                                 this.error(tok, ppcmd == PP_ERROR);
@@ -1837,7 +1582,7 @@ public class Preprocessor implements Closeable {
 
                         case PP_IF:
                             this.push_state();
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             }
                             this.expr_token = null;
@@ -1852,9 +1597,7 @@ public class Preprocessor implements Closeable {
 
                         case PP_ELIF:
                             State state = this.states.peek();
-                            if (false) {
-                                /* Check for 'if' */
-                            } else if (state.sawElse()) {
+                            if (state.sawElse()) {
                                 this.error(tok,
                                         "#elif after #" + "else");
                                 return this.source_skipline(false);
@@ -1882,9 +1625,7 @@ public class Preprocessor implements Closeable {
 
                         case PP_ELSE:
                             state = this.states.peek();
-                            if (false)
-                                /* Check for 'if' */ ;
-                            else if (state.sawElse()) {
+                            if (state.sawElse()) {
                                 this.error(tok,
                                         "#" + "else after #" + "else");
                                 return this.source_skipline(false);
@@ -1897,7 +1638,7 @@ public class Preprocessor implements Closeable {
 
                         case PP_IFDEF:
                             this.push_state();
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             } else {
                                 tok = this.source_token_nonwhite();
@@ -1919,7 +1660,7 @@ public class Preprocessor implements Closeable {
 
                         case PP_IFNDEF:
                             this.push_state();
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             } else {
                                 tok = this.source_token_nonwhite();
@@ -1948,7 +1689,7 @@ public class Preprocessor implements Closeable {
                         // break;
 
                         case PP_PRAGMA:
-                            if (!this.isActive()) {
+                            if (this.isNotActive()) {
                                 return this.source_skipline(false);
                             }
                             return this.pragma();
@@ -1961,10 +1702,7 @@ public class Preprocessor implements Closeable {
                              * failed to handle it. Therefore,
                              * this is (unconditionally?) fatal. */
                             // if (isActive()) /* XXX Could be warning. */
-                            throw new InternalException(
-                                    "Internal error: Unknown directive "
-                                            + tok);
-                            // return source_skipline(false);
+                            throw new AssertionError("Internal error: Unknown directive " + tok);
                     }
 
             }
@@ -1972,9 +1710,7 @@ public class Preprocessor implements Closeable {
     }
 
     @NotNull
-    private Token token_nonwhite()
-            throws IOException,
-            LexerException {
+    private Token token_nonwhite() throws IOException, LexerException {
         Token tok;
         do {
             tok = this._token();
@@ -1986,9 +1722,9 @@ public class Preprocessor implements Closeable {
      * Returns the next preprocessor token.
      *
      * @return The next fully preprocessed token.
-     * @throws IOException       if an I/O error occurs.
-     * @throws LexerException    if a preprocessing error occurs.
-     * @throws InternalException if an unexpected error condition arises.
+     * @throws IOException    if an I/O error occurs.
+     * @throws LexerException if a preprocessing error occurs.
+     * @throws AssertionError if an unexpected error condition arises.
      * @see Token
      */
     @NotNull
@@ -2015,20 +1751,4 @@ public class Preprocessor implements Closeable {
 
         return buf.toString();
     }
-
-    @Override
-    public void close()
-            throws IOException {
-        {
-            Source s = this.source;
-            while (s != null) {
-                s.close();
-                s = s.getParent();
-            }
-        }
-        for (Source s : this.inputs) {
-            s.close();
-        }
-    }
-
 }

@@ -24,46 +24,49 @@ package io.github.ocelot.glslprocessor.lib.anarres.cpp;
  * - Fixed minor errors
  */
 
-/* pp */ class State {
+import org.jetbrains.annotations.ApiStatus;
+
+@ApiStatus.Internal
+class State {
 
     boolean parent;
     boolean active;
     boolean sawElse;
 
-    /* pp */ State() {
+    State() {
         this.parent = true;
         this.active = true;
         this.sawElse = false;
     }
 
-    /* pp */ State(State parent) {
+    State(State parent) {
         this.parent = parent.isParentActive() && parent.isActive();
         this.active = true;
         this.sawElse = false;
     }
 
     /* Required for #elif */
-    /* pp */ void setParentActive(boolean b) {
+    void setParentActive(boolean b) {
         this.parent = b;
     }
 
-    /* pp */ boolean isParentActive() {
+    boolean isParentActive() {
         return this.parent;
     }
 
-    /* pp */ void setActive(boolean b) {
+    void setActive(boolean b) {
         this.active = b;
     }
 
-    /* pp */ boolean isActive() {
+    boolean isActive() {
         return this.active;
     }
 
-    /* pp */ void setSawElse() {
+    void setSawElse() {
         this.sawElse = true;
     }
 
-    /* pp */ boolean sawElse() {
+    boolean sawElse() {
         return this.sawElse;
     }
 

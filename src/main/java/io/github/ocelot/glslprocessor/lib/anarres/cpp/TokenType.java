@@ -5,6 +5,7 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,8 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
 /**
  * @author shevek
  */
-/* pp */ record TokenType(String name, String text) {
+@ApiStatus.Internal
+record TokenType(String name, String text) {
 
     private static final List<TokenType> TYPES = new ArrayList<>();
 
@@ -117,7 +119,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
         addTokenType(INVALID, "INVALID");
     }
 
-    /* pp */ TokenType(@NotNull String name, @Nullable String text) {
+    TokenType(@NotNull String name, @Nullable String text) {
         this.name = name;
         this.text = text;
     }

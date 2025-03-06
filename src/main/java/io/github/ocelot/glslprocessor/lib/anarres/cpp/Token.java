@@ -16,13 +16,23 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+
+/*
+ * NOTE: This File was edited by the Veil Team based on this commit: https://github.com/shevek/jcpp/commit/5e50e75ec33f5b4567cabfd60b6baca39524a8b7
+ *
+ * - Updated formatting to more closely follow project standards
+ * - Removed all file/IO
+ * - Fixed minor errors
+ */
 
 /**
  * A Preprocessor token.
  *
  * @see Preprocessor
  */
+@ApiStatus.Internal
 public final class Token {
 
     // public static final int	EOF        = -1;
@@ -45,15 +55,15 @@ public final class Token {
         this(type, line, column, text, null);
     }
 
-    /* pp */ Token(int type, String text, Object value) {
+    Token(int type, String text, Object value) {
         this(type, -1, -1, text, value);
     }
 
-    /* pp */ Token(int type, String text) {
+    Token(int type, String text) {
         this(type, text, null);
     }
 
-    /* pp */ Token(int type) {
+    Token(int type) {
         this(type, TokenType.getTokenText(type));
     }
 
@@ -67,7 +77,7 @@ public final class Token {
         return this.type;
     }
 
-    /* pp */ void setLocation(int line, int column) {
+    void setLocation(int line, int column) {
         this.line = line;
         this.column = column;
     }
@@ -216,5 +226,5 @@ public final class Token {
     /**
      * The position-less space token.
      */
-    /* pp */ static final Token space = new Token(WHITESPACE, -1, -1, " ");
+    static final Token space = new Token(WHITESPACE, -1, -1, " ");
 }

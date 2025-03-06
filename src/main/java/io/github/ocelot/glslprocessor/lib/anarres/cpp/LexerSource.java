@@ -16,10 +16,10 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.io.Reader;
+import java.util.Arrays;
 
 import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
 
@@ -34,9 +34,10 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
 /**
  * Does not handle digraphs.
  */
+@ApiStatus.Internal
 public class LexerSource extends Source {
 
-    private JoinReader reader;
+    private final JoinReader reader;
     private final boolean ppvalid;
     private boolean bol;
     private boolean include;
@@ -55,8 +56,8 @@ public class LexerSource extends Source {
     /* ppvalid is:
      * false in StringLexerSource,
      * true in FileLexerSource */
-    public LexerSource(Reader r, boolean ppvalid) {
-        this.reader = new JoinReader(r);
+    public LexerSource(String input, boolean ppvalid) {
+        this.reader = new JoinReader(input);
         this.ppvalid = ppvalid;
         this.bol = true;
         this.include = false;
@@ -72,7 +73,7 @@ public class LexerSource extends Source {
     }
 
     @Override
-        /* pp */ void init(Preprocessor pp) {
+    void init(Preprocessor pp) {
         super.init(pp);
         this.digraphs = pp.getFeature(Feature.DIGRAPHS);
         this.reader.init(pp, this);
@@ -103,13 +104,12 @@ public class LexerSource extends Source {
     }
 
     @Override
-        /* pp */ boolean isNumbered() {
+    boolean isNumbered() {
         return true;
     }
 
     /* Error handling. */
-    private void _error(String msg, boolean error)
-            throws LexerException {
+    private void _error(String msg) throws LexerException {
         int _l = this.line;
         int _c = this.column;
         if (_c == 0) {
@@ -118,30 +118,18 @@ public class LexerSource extends Source {
         } else {
             _c--;
         }
-        if (error) {
-            super.error(_l, _c, msg);
-        } else {
-            super.warning(_l, _c, msg);
-        }
+        super.warning(_l, _c, msg);
     }
 
     /* Allow JoinReader to call this. */
     /* pp */
-    final void error(String msg)
-            throws LexerException {
-        this._error(msg, true);
-    }
-
-    /* Allow JoinReader to call this. */
-    /* pp */
-    final void warning(String msg)
-            throws LexerException {
-        this._error(msg, false);
+    final void warning(String msg) throws LexerException {
+        this._error(msg);
     }
 
     /* A flag for string handling. */
 
-    /* pp */ void setInclude(boolean b) {
+    void setInclude(boolean b) {
         this.include = b;
     }
 
@@ -154,42 +142,26 @@ public class LexerSource extends Source {
 
     /* XXX Move to JoinReader and canonicalise newlines. */
     private static boolean isLineSeparator(int c) {
-        switch ((char) c) {
-            case '\r':
-            case '\n':
-            case '\u2028':
-            case '\u2029':
-            case '\u000B':
-            case '\u000C':
-            case '\u0085':
-                return true;
-            default:
-                return (c == -1);
-        }
+        return switch ((char) c) {
+            case '\r', '\n', '\u2028', '\u2029', '\u000B', '\u000C', '\u0085' -> true;
+            default -> (c == -1);
+        };
     }
 
-    private int read()
-            throws IOException,
-            LexerException {
+    private int read() throws LexerException {
         int c;
         assert this.ucount <= 2 : "Illegal ucount: " + this.ucount;
-        switch (this.ucount) {
-            case 2:
+        c = switch (this.ucount) {
+            case 2 -> {
                 this.ucount = 1;
-                c = this.u1;
-                break;
-            case 1:
+                yield this.u1;
+            }
+            case 1 -> {
                 this.ucount = 0;
-                c = this.u0;
-                break;
-            default:
-                if (this.reader == null) {
-                    c = -1;
-                } else {
-                    c = this.reader.read();
-                }
-                break;
-        }
+                yield this.u0;
+            }
+            default -> this.reader.read();
+        };
 
         switch (c) {
             case '\r':
@@ -237,8 +209,7 @@ public class LexerSource extends Source {
     }
 
     /* You can unget AT MOST one newline. */
-    private void unread(int c)
-            throws IOException {
+    private void unread(int c) {
         /* XXX Must unread newlines. */
         if (c != -1) {
             if (isLineSeparator(c)) {
@@ -266,24 +237,8 @@ public class LexerSource extends Source {
         }
     }
 
-    /* Consumes the rest of the current line into an invalid. */
     @NotNull
-    private Token invalid(StringBuilder text, String reason)
-            throws IOException,
-            LexerException {
-        int d = this.read();
-        while (!isLineSeparator(d)) {
-            text.append((char) d);
-            d = this.read();
-        }
-        this.unread(d);
-        return new Token(INVALID, text.toString(), reason);
-    }
-
-    @NotNull
-    private Token ccomment()
-            throws IOException,
-            LexerException {
+    private Token ccomment() throws LexerException {
         StringBuilder text = new StringBuilder("/*");
         int d;
         do {
@@ -308,9 +263,7 @@ public class LexerSource extends Source {
     }
 
     @NotNull
-    private Token cppcomment()
-            throws IOException,
-            LexerException {
+    private Token cppcomment() throws LexerException {
         StringBuilder text = new StringBuilder("//");
         int d = this.read();
         while (!isLineSeparator(d)) {
@@ -326,12 +279,9 @@ public class LexerSource extends Source {
      *
      * @param text The buffer to which the literal escape sequence is appended.
      * @return The new parsed character value.
-     * @throws IOException    if it goes badly wrong.
      * @throws LexerException if it goes wrong.
      */
-    private int escape(StringBuilder text)
-            throws IOException,
-            LexerException {
+    private int escape(StringBuilder text) throws LexerException {
         int d = this.read();
         switch (d) {
             case 'a':
@@ -408,63 +358,13 @@ public class LexerSource extends Source {
     }
 
     @NotNull
-    private Token character()
-            throws IOException,
-            LexerException {
-        StringBuilder text = new StringBuilder("'");
-        int d = this.read();
-        if (d == '\\') {
-            text.append('\\');
-            d = this.escape(text);
-        } else if (isLineSeparator(d)) {
-            this.unread(d);
-            return new Token(INVALID, text.toString(),
-                    "Unterminated character literal");
-        } else if (d == '\'') {
-            text.append('\'');
-            return new Token(INVALID, text.toString(),
-                    "Empty character literal");
-        } else if (!Character.isDefined(d)) {
-            text.append('?');
-            return this.invalid(text, "Illegal unicode character literal");
-        } else {
-            text.append((char) d);
-        }
-
-        int e = this.read();
-        if (e != '\'') {
-            // error("Illegal character constant");
-            /* We consume up to the next ' or the rest of the line. */
-            for (; ; ) {
-                if (isLineSeparator(e)) {
-                    this.unread(e);
-                    break;
-                }
-                text.append((char) e);
-                if (e == '\'') {
-                    break;
-                }
-                e = this.read();
-            }
-            return new Token(INVALID, text.toString(),
-                    "Illegal character constant " + text);
-        }
-        text.append('\'');
-        /* XXX It this a bad cast? */
-        return new Token(CHARACTER,
-                text.toString(), Character.valueOf((char) d));
-    }
-
-    @NotNull
-    private Token string(char open, char close)
-            throws IOException,
-            LexerException {
+    private Token string(char open, char close) throws LexerException {
         StringBuilder text = new StringBuilder();
         text.append(open);
 
         StringBuilder buf = new StringBuilder();
 
-        for (; ; ) {
+        while (true) {
             int c = this.read();
             if (c == close) {
                 break;
@@ -490,32 +390,23 @@ public class LexerSource extends Source {
             }
         }
         text.append(close);
-        switch (close) {
-            case '"':
-                return new Token(STRING,
-                        text.toString(), buf.toString());
-            case '>':
-                return new Token(HEADER,
-                        text.toString(), buf.toString());
-            case '\'':
+        return switch (close) {
+            case '"' -> new Token(STRING, text.toString(), buf.toString());
+            case '>' -> new Token(HEADER, text.toString(), buf.toString());
+            case '\'' -> {
                 if (buf.length() == 1) {
-                    return new Token(CHARACTER,
-                            text.toString(), buf.toString());
+                    yield new Token(CHARACTER, text.toString(), buf.toString());
                 }
-                return new Token(SQSTRING,
-                        text.toString(), buf.toString());
-            default:
-                throw new IllegalStateException(
-                        "Unknown closing character " + close);
-        }
+                yield new Token(SQSTRING, text.toString(), buf.toString());
+            }
+            default -> throw new IllegalStateException("Unknown closing character " + close);
+        };
     }
 
     @NotNull
-    private Token _number_suffix(StringBuilder text, NumericValue value, int d)
-            throws IOException,
-            LexerException {
+    private Token _number_suffix(StringBuilder text, NumericValue value, int d) throws LexerException {
         int flags = 0;    // U, I, L, LL, F, D, MSB
-        for (; ; ) {
+        while (true) {
             if (d == 'U' || d == 'u') {
                 if ((flags & NumericValue.F_UNSIGNED) != 0) {
                     this.warning("Duplicate unsigned suffix " + d);
@@ -570,7 +461,6 @@ public class LexerSource extends Source {
                 return new Token(INVALID, text.toString(), reason);
             } else {
                 this.unread(d);
-                value.setFlags(flags);
                 return new Token(NUMBER,
                         text.toString(), value);
             }
@@ -579,9 +469,7 @@ public class LexerSource extends Source {
 
     /* Either a decimal part, or a hex exponent. */
     @NotNull
-    private String _number_part(StringBuilder text, int base, boolean sign)
-            throws IOException,
-            LexerException {
+    private String _number_part(StringBuilder text, int base, boolean sign) throws LexerException {
         StringBuilder part = new StringBuilder();
         int d = this.read();
         if (sign && (d == '+' || d == '-')) {
@@ -600,9 +488,7 @@ public class LexerSource extends Source {
 
     /* We do not know whether know the first digit is valid. */
     @NotNull
-    private Token number_hex(char x)
-            throws IOException,
-            LexerException {
+    private Token number_hex(char x) throws LexerException {
         StringBuilder text = new StringBuilder("0");
         text.append(x);
         String integer = this._number_part(text, 16, false);
@@ -639,9 +525,7 @@ public class LexerSource extends Source {
     /* We know we have at least one valid digit, but empty is not
      * fine. */
     @NotNull
-    private Token number_decimal()
-            throws IOException,
-            LexerException {
+    private Token number_decimal() throws LexerException {
         StringBuilder text = new StringBuilder();
         String integer = this._number_part(text, 10, false);
         String fraction = null;
@@ -712,9 +596,7 @@ public class LexerSource extends Source {
      * correctly rounded.
      */
     @NotNull
-    private Token number()
-            throws IOException,
-            LexerException {
+    private Token number() throws LexerException {
         Token tok;
         int c = this.read();
         if (c == '0') {
@@ -736,20 +618,18 @@ public class LexerSource extends Source {
     }
 
     @NotNull
-    private Token identifier(int c)
-            throws IOException,
-            LexerException {
+    private Token identifier(int c) throws LexerException {
         StringBuilder text = new StringBuilder();
         int d;
         text.append((char) c);
-        for (; ; ) {
+        while (true) {
             d = this.read();
-            if (Character.isIdentifierIgnorable(d))
-                ;
-            else if (Character.isJavaIdentifierPart(d)) {
-                text.append((char) d);
-            } else {
-                break;
+            if (!Character.isIdentifierIgnorable(d)) {
+                if (Character.isJavaIdentifierPart(d)) {
+                    text.append((char) d);
+                } else {
+                    break;
+                }
             }
         }
         this.unread(d);
@@ -757,13 +637,11 @@ public class LexerSource extends Source {
     }
 
     @NotNull
-    private Token whitespace(int c)
-            throws IOException,
-            LexerException {
+    private Token whitespace(int c) throws LexerException {
         StringBuilder text = new StringBuilder();
         int d;
         text.append((char) c);
-        for (; ; ) {
+        while (true) {
             d = this.read();
             if (this.ppvalid && isLineSeparator(d)) /* XXX Ugly. */ {
                 break;
@@ -780,9 +658,7 @@ public class LexerSource extends Source {
 
     /* No token processed by cond() contains a newline. */
     @NotNull
-    private Token cond(char c, int yes, int no)
-            throws IOException,
-            LexerException {
+    private Token cond(char c, int yes, int no) throws LexerException {
         int d = this.read();
         if (c == d) {
             return new Token(yes);
@@ -792,9 +668,7 @@ public class LexerSource extends Source {
     }
 
     @Override
-    public Token token()
-            throws IOException,
-            LexerException {
+    public Token token() throws LexerException {
         Token tok = null;
 
         int _l = this.line;
@@ -817,9 +691,7 @@ public class LexerSource extends Source {
                         } while (d == '\n');
                         this.unread(d);
                         char[] text = new char[nls];
-                        for (int i = 0; i < text.length; i++) {
-                            text[i] = '\n';
-                        }
+                        Arrays.fill(text, '\n');
                         // Skip the bol = false below.
                         tok = new Token(NL, _l, _c, new String(text));
                     }
@@ -1000,7 +872,6 @@ public class LexerSource extends Source {
                 break;
 
             case -1:
-                this.close();
                 tok = new Token(EOF, _l, _c, "<eof>");
                 break;
         }
@@ -1040,14 +911,5 @@ public class LexerSource extends Source {
 
         tok.setLocation(_l, _c);
         return tok;
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (this.reader != null) {
-            this.reader.close();
-            this.reader = null;
-        }
-        super.close();
     }
 }

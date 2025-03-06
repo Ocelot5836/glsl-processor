@@ -16,12 +16,9 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Iterator;
 
 import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
 
@@ -44,53 +41,16 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
  * <p>
  * BUG: Error messages are not handled properly.
  */
-public abstract class Source implements Iterable<Token>, Closeable {
+@ApiStatus.Internal
+public abstract class Source {
 
     private Source parent;
     private boolean autopop;
-    private PreprocessorListener listener;
-    private boolean active;
     private boolean werror;
 
-    /* LineNumberReader */
-
-    /*
-     // We can't do this, since we would lose the LexerException
-     private class Itr implements Iterator {
-     private Token	next = null;
-     private void advance() {
-     try {
-     if (next != null)
-     next = token();
-     }
-     catch (IOException e) {
-     throw new UnsupportedOperationException(
-     "Failed to advance token iterator: " +
-     e.getMessage()
-     );
-     }
-     }
-     public boolean hasNext() {
-     return next.getType() != EOF;
-     }
-     public Token next() {
-     advance();
-     Token	t = next;
-     next = null;
-     return t;
-     }
-     public void remove() {
-     throw new UnsupportedOperationException(
-     "Cannot remove tokens from a Source."
-     );
-     }
-     }
-     */
     public Source() {
         this.parent = null;
         this.autopop = false;
-        this.listener = null;
-        this.active = true;
         this.werror = false;
     }
 
@@ -99,7 +59,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
      * <p>
      * Sources form a singly linked list.
      */
-    /* pp */ void setParent(Source parent, boolean autopop) {
+    void setParent(Source parent, boolean autopop) {
         this.parent = parent;
         this.autopop = autopop;
     }
@@ -116,20 +76,8 @@ public abstract class Source implements Iterable<Token>, Closeable {
 
 
     // @OverrideMustInvoke
-    /* pp */ void init(Preprocessor pp) {
-        this.setListener(pp.getListener());
+    void init(Preprocessor pp) {
         this.werror = pp.getWarnings().contains(Warning.ERROR);
-    }
-
-    /**
-     * Sets the listener for this Source.
-     * <p>
-     * Normally this is set by the Preprocessor when a Source is
-     * used, but if you are using a Source as a standalone object,
-     * you may wish to call this.
-     */
-    public void setListener(PreprocessorListener pl) {
-        this.listener = pl;
     }
 
     /**
@@ -171,7 +119,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
      * <p>
      * This is used to prevent macro recursion.
      */
-    /* pp */ boolean isExpanding(@NotNull Macro m) {
+    boolean isExpanding(@NotNull Macro m) {
         Source parent = this.getParent();
         if (parent != null) {
             return parent.isExpanding(m);
@@ -185,25 +133,15 @@ public abstract class Source implements Iterable<Token>, Closeable {
      * <p>
      * Examples of such sources are macro expansions.
      */
-    /* pp */ boolean isAutopop() {
+    boolean isAutopop() {
         return this.autopop;
     }
 
     /**
      * Returns true if this source has line numbers.
      */
-    /* pp */ boolean isNumbered() {
+    boolean isNumbered() {
         return false;
-    }
-
-    /* This is an incredibly lazy way of disabling warnings when
-     * the source is not active. */
-    /* pp */ void setActive(boolean b) {
-        this.active = b;
-    }
-
-    /* pp */ boolean isActive() {
-        return this.active;
     }
 
     /**
@@ -211,18 +149,7 @@ public abstract class Source implements Iterable<Token>, Closeable {
      *
      * @see Token
      */
-    @NotNull
-    public abstract Token token()
-            throws IOException,
-            LexerException;
-
-    /**
-     * Returns a token iterator for this Source.
-     */
-    @Override
-    public Iterator<Token> iterator() {
-        return new SourceIterator(this);
-    }
+    public abstract Token token() throws LexerException;
 
     /**
      * Skips tokens until the end of line.
@@ -231,22 +158,16 @@ public abstract class Source implements Iterable<Token>, Closeable {
      *              remainder of the line.
      * @return the NL token.
      */
-    @NotNull
-    public Token skipline(boolean white)
-            throws IOException,
-            LexerException {
-        for (; ; ) {
+    public Token skipline(boolean white) throws LexerException {
+        while (true) {
             Token tok = this.token();
             switch (tok.getType()) {
                 case EOF:
                     /* There ought to be a newline before EOF.
                      * At least, in any skipline context. */
                     /* XXX Are we sure about this? */
-                    this.warning(tok.getLine(), tok.getColumn(),
-                            "No newline before end of file");
-                    return new Token(NL,
-                            tok.getLine(), tok.getColumn(),
-                            "\n");
+                    this.warning(tok.getLine(), tok.getColumn(), "No newline before end of file");
+                    return new Token(NL, tok.getLine(), tok.getColumn(), "\n");
                 // return tok;
                 case NL:
                     /* This may contain one or more newlines. */
@@ -258,36 +179,22 @@ public abstract class Source implements Iterable<Token>, Closeable {
                 default:
                     /* XXX Check white, if required. */
                     if (white) {
-                        this.warning(tok.getLine(), tok.getColumn(),
-                                "Unexpected nonwhite token");
+                        this.warning(tok.getLine(), tok.getColumn(), "Unexpected nonwhite token");
                     }
                     break;
             }
         }
     }
 
-    protected void error(int line, int column, String msg)
-            throws LexerException {
-        if (this.listener != null) {
-            this.listener.handleError(this, line, column, msg);
-        } else {
-            throw new LexerException("Error at " + line + ":" + column + ": " + msg);
-        }
+    protected void error(int line, int column, String msg) throws LexerException {
+        throw new LexerException("Error at " + line + ":" + column + ": " + msg);
     }
 
-    protected void warning(int line, int column, String msg)
-            throws LexerException {
+    protected void warning(int line, int column, String msg) throws LexerException {
         if (this.werror) {
             this.error(line, column, msg);
-        } else if (this.listener != null) {
-            this.listener.handleWarning(this, line, column, msg);
         } else {
             throw new LexerException("Warning at " + line + ":" + column + ": " + msg);
         }
     }
-
-    public void close()
-            throws IOException {
-    }
-
 }

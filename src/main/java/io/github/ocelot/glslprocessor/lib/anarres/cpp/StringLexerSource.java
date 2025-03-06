@@ -16,7 +16,7 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
-import java.io.StringReader;
+import org.jetbrains.annotations.ApiStatus;
 
 /*
  * NOTE: This File was edited by the Veil Team based on this commit: https://github.com/shevek/jcpp/commit/5e50e75ec33f5b4567cabfd60b6baca39524a8b7
@@ -32,6 +32,7 @@ import java.io.StringReader;
  * This class is used by token pasting, but can be used by user
  * code.
  */
+@ApiStatus.Internal
 public class StringLexerSource extends LexerSource {
 
     /**
@@ -42,7 +43,7 @@ public class StringLexerSource extends LexerSource {
      *                honoured within the string.
      */
     public StringLexerSource(String string, boolean ppvalid) {
-        super(new StringReader(string), ppvalid);
+        super(string, ppvalid);
     }
 
     /**

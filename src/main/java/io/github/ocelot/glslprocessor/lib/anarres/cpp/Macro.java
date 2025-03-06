@@ -16,6 +16,8 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +37,7 @@ import java.util.List;
  * for replacement. The replacement token stream may contain the
  * extra tokens {@link Token#M_ARG} and {@link Token#M_STRING}.
  */
+@ApiStatus.Internal
 public class Macro {
 
     private Source source;
@@ -143,7 +146,7 @@ public class Macro {
         this.tokens.add(this.tokens.size() - 1, tok);
     }
 
-    /* pp */ List<Token> getTokens() {
+    List<Token> getTokens() {
         return this.tokens;
     }
 
@@ -166,7 +169,6 @@ public class Macro {
                 buf.append(" #" + "# ");
                 paste = false;
             }
-            // buf.append(tokens.get(i));
         }
         return buf.toString();
     }
@@ -192,5 +194,4 @@ public class Macro {
         }
         return buf.toString();
     }
-
 }

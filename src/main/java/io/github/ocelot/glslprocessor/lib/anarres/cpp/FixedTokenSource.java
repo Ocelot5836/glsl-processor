@@ -16,6 +16,8 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +30,7 @@ import java.util.List;
  * - Fixed minor errors
  */
 
-/* pp */
+@ApiStatus.Internal
 class FixedTokenSource extends Source {
 
     private static final Token EOF = new Token(Token.EOF, "<ts-eof>");
@@ -36,20 +38,18 @@ class FixedTokenSource extends Source {
     private final List<Token> tokens;
     private int idx;
 
-    /* pp */ FixedTokenSource(Token... tokens) {
+    FixedTokenSource(Token... tokens) {
         this.tokens = Arrays.asList(tokens);
         this.idx = 0;
     }
 
-    /* pp */ FixedTokenSource(List<Token> tokens) {
+    FixedTokenSource(List<Token> tokens) {
         this.tokens = tokens;
         this.idx = 0;
     }
 
     @Override
-    public Token token()
-            throws IOException,
-            LexerException {
+    public Token token() throws LexerException {
         if (this.idx >= this.tokens.size()) {
             return EOF;
         }

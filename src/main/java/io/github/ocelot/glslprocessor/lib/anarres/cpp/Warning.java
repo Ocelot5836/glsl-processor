@@ -16,6 +16,8 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
+
 /*
  * NOTE: This File was edited by the Veil Team based on this commit: https://github.com/shevek/jcpp/commit/5e50e75ec33f5b4567cabfd60b6baca39524a8b7
  *
@@ -27,14 +29,13 @@ package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 /**
  * Warning classes which may optionally be emitted by the Preprocessor.
  */
+@ApiStatus.Internal
 public enum Warning {
 
     TRIGRAPHS,
-    // TRADITIONAL,
     IMPORT,
     UNDEF,
     UNUSED_MACROS,
     ENDIF_LABELS,
-    ERROR,
-    // SYSTEM_HEADERS
+    ERROR
 }

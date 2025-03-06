@@ -16,6 +16,7 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -34,7 +35,8 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
 
 /* This source should always be active, since we don't expand macros
  * in any inactive context. */
-/* pp */ class MacroTokenSource extends Source {
+@ApiStatus.Internal
+class MacroTokenSource extends Source {
 
     private final Macro macro;
     private final Iterator<Token> tokens;    /* Pointer into the macro.  */
@@ -43,7 +45,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
 
     private Iterator<Token> arg;    /* "current expansion" */
 
-    /* pp */ MacroTokenSource(@NotNull Macro m, @NotNull List<Argument> args) {
+    MacroTokenSource(@NotNull Macro m, @NotNull List<Argument> args) {
         this.macro = m;
         this.tokens = m.getTokens().iterator();
         this.args = args;
@@ -51,7 +53,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
     }
 
     @Override
-        /* pp */ boolean isExpanding(@NotNull Macro m) {
+    boolean isExpanding(@NotNull Macro m) {
         /* When we are expanding an arg, 'this' macro is not
          * being expanded, and thus we may re-expand it. */
         if (/* XXX this.arg == null && */this.macro == m) {
@@ -99,9 +101,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
         escape(str, buf);
         str.append("\"");
         // System.out.println("Escape: " + buf + " -> " + str);
-        return new Token(STRING,
-                pos.getLine(), pos.getColumn(),
-                str.toString(), buf.toString());
+        return new Token(STRING, pos.getLine(), pos.getColumn(), str.toString(), buf.toString());
     }
 
     /**
@@ -134,8 +134,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
         for (int i = 0; i < count; i++) {
             if (!this.tokens.hasNext()) {
                 /* XXX This one really should throw. */
-                this.error(ptok.getLine(), ptok.getColumn(),
-                        "Paste at end of expansion");
+                this.error(ptok.getLine(), ptok.getColumn(), "Paste at end of expansion");
                 buf.append(' ').append(ptok.getText());
                 break;
             }
@@ -149,7 +148,7 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
                     ptok = tok;
                     break;
                 case M_ARG:
-                    int idx = ((Integer) tok.getValue()).intValue();
+                    int idx = (Integer) tok.getValue();
                     Argument arg = this.args.get(idx);
                     if (comma && this.isVariadicArgument(idx) && arg.isEmpty()) {
                         // Ugly way to strip the comma.
@@ -161,8 +160,6 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
                 /* XXX Test this. */
                 case CCOMMENT:
                 case CPPCOMMENT:
-                    // TODO: In cpp, -CC keeps these comments too,
-                    // but turns all C++ comments into C comments.
                     break;
                 case ',':
                     comma = true;
@@ -188,8 +185,8 @@ import static io.github.ocelot.glslprocessor.lib.anarres.cpp.Token.*;
     }
 
     @Override
-    public Token token() throws IOException, LexerException {
-        for (; ; ) {
+    public Token token() throws LexerException {
+        while(true) {
             /* Deal with lexed tokens first. */
 
             if (this.arg != null) {

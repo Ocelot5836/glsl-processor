@@ -1159,11 +1159,6 @@ public class GlslParserImpl {
         return null;
     }
 
-    public static @Nullable GlslNode parseInvariantQualifier(GlslTokenReader reader) {
-        // INVARIANT
-        return null; // TODO
-    }
-
     public static @Nullable GlslTypeQualifier.Interpolation parseInterpolationQualifier(GlslTokenReader reader) {
         // SMOOTH
         // FLAT

@@ -16,6 +16,7 @@
  */
 package io.github.ocelot.glslprocessor.lib.anarres.cpp;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -36,7 +37,7 @@ import java.util.List;
  * <p>
  * This encapsulates a raw and preprocessed token stream.
  */
-/* pp */
+@ApiStatus.Internal
 class Argument extends ArrayList<Token> {
 
     private List<Token> expansion;
@@ -49,14 +50,10 @@ class Argument extends ArrayList<Token> {
         this.add(tok);
     }
 
-    /* pp */
-    void expand(@NotNull Preprocessor p)
-            throws IOException,
-            LexerException {
+    void expand(@NotNull Preprocessor p) throws IOException, LexerException {
         /* Cache expansion. */
         if (this.expansion == null) {
             this.expansion = p.expand(this);
-            // System.out.println("Expanded arg " + this);
         }
     }
 
@@ -69,10 +66,9 @@ class Argument extends ArrayList<Token> {
     public String toString() {
         StringBuilder buf = new StringBuilder();
         buf.append("Argument(");
-        // buf.append(super.toString());
         buf.append("raw=[ ");
-        for (int i = 0; i < this.size(); i++) {
-            buf.append(this.get(i).getText());
+        for (Token value : this) {
+            buf.append(value.getText());
         }
         buf.append(" ];expansion=[ ");
         if (this.expansion == null) {
@@ -85,5 +81,4 @@ class Argument extends ArrayList<Token> {
         buf.append(" ])");
         return buf.toString();
     }
-
 }
