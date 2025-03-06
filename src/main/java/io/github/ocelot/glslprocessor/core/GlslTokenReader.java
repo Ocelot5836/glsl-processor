@@ -10,6 +10,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
+/**
+ * @author Ocelot
+ */
 @ApiStatus.Internal
 public class GlslTokenReader {
 

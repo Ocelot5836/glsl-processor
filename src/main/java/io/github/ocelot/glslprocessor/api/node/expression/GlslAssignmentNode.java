@@ -2,6 +2,7 @@ package io.github.ocelot.glslprocessor.api.node.expression;
 
 import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslAssignmentNode implements GlslNode {
+public final class GlslAssignmentNode implements GlslNode {
 
     private GlslNode first;
     private GlslNode second;
@@ -31,6 +32,11 @@ public class GlslAssignmentNode implements GlslNode {
     @Override
     public void visit(GlslNodeVisitor visitor) {
         visitor.visitAssign(this);
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.ASSIGN;
     }
 
     @Override

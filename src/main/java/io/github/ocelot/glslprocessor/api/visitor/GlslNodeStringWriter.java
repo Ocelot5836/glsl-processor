@@ -18,7 +18,7 @@ import java.util.Locale;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslNodeStringWriter extends GlslNodeVisitor {
+public final class GlslNodeStringWriter extends GlslNodeVisitor {
 
     private final String prefix;
     private final String base;

@@ -5,6 +5,7 @@ import io.github.ocelot.glslprocessor.api.grammar.GlslParameterDeclaration;
 import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslNodeList;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.node.GlslRootNode;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslFunctionNode implements GlslRootNode {
+public final class GlslFunctionNode implements GlslRootNode {
 
     private GlslFunctionHeader header;
     private GlslNodeList body;
@@ -40,6 +41,11 @@ public class GlslFunctionNode implements GlslRootNode {
             }
             bodyVisitor.visitFunctionDeclarationEnd(this);
         }
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.FUNCTION;
     }
 
     /**

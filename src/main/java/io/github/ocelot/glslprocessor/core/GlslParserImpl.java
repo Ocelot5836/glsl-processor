@@ -22,6 +22,9 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * @author Ocelot
+ */
 @ApiStatus.Internal
 public class GlslParserImpl {
 
@@ -58,7 +61,8 @@ public class GlslParserImpl {
             strippedSource = input;
         }
 
-        try (Preprocessor preprocessor = new Preprocessor()) {
+        try {
+            Preprocessor preprocessor = new Preprocessor();
             preprocessor.addFeature(Feature.KEEPCOMMENTS);
             for (Map.Entry<String, String> entry : macros.entrySet()) {
                 preprocessor.addMacro(entry.getKey(), entry.getValue());

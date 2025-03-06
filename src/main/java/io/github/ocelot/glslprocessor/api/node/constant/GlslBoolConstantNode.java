@@ -1,5 +1,7 @@
 package io.github.ocelot.glslprocessor.api.node.constant;
 
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
+
 /**
  * @author Ocelot
  * @since 1.0.0
@@ -24,5 +26,10 @@ public record GlslBoolConstantNode(boolean value) implements GlslConstantNode {
     @Override
     public String toString() {
         return Boolean.toString(this.value);
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.BOOL_CONSTANT;
     }
 }

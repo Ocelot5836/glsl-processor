@@ -5,6 +5,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * @author Ocelot
+ */
 @ApiStatus.Internal
 class GlslNumberConstantParser {
 

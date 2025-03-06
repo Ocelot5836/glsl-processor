@@ -18,6 +18,11 @@ public enum GlslEmptyNode implements GlslNode {
     }
 
     @Override
+    public GlslNodeType getNodeType() {
+        throw new AssertionError("This should never happen");
+    }
+
+    @Override
     public List<GlslNode> toList() {
         return new ArrayList<>();
     }

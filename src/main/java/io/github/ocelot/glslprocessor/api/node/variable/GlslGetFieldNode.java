@@ -1,6 +1,7 @@
 package io.github.ocelot.glslprocessor.api.node.variable;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.stream.Stream;
@@ -9,7 +10,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslGetFieldNode implements GlslNode {
+public final class GlslGetFieldNode implements GlslNode {
 
     private GlslNode expression;
     private String fieldSelection;
@@ -22,6 +23,11 @@ public class GlslGetFieldNode implements GlslNode {
     @Override
     public void visit(GlslNodeVisitor visitor) {
         visitor.visitGetField(this);
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.GET_FIELD;
     }
 
     public GlslNode getExpression() {

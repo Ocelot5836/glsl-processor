@@ -53,21 +53,21 @@ public class GlslTreeVisitor {
         }
     }
 
-    public void visitNewField(GlslNewFieldNode newNode) {
+    public void visitNewField(GlslNewFieldNode node) {
         if (this.parent != null) {
-            this.parent.visitNewField(newNode);
+            this.parent.visitNewField(node);
         }
     }
 
-    public void visitStructDeclaration(GlslStructDeclarationNode structSpecifier) {
+    public void visitStructDeclaration(GlslStructDeclarationNode node) {
         if (this.parent != null) {
-            this.parent.visitStructDeclaration(structSpecifier);
+            this.parent.visitStructDeclaration(node);
         }
     }
 
-    public void visitDeclaration(GlslVariableDeclarationNode declaration) {
+    public void visitDeclaration(GlslVariableDeclarationNode node) {
         if (this.parent != null) {
-            this.parent.visitDeclaration(declaration);
+            this.parent.visitDeclaration(node);
         }
     }
 

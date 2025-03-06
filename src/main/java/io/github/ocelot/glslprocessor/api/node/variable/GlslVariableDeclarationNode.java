@@ -2,6 +2,7 @@ package io.github.ocelot.glslprocessor.api.node.variable;
 
 import io.github.ocelot.glslprocessor.api.grammar.GlslTypeQualifier;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.node.GlslRootNode;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +16,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslVariableDeclarationNode implements GlslRootNode {
+public final class GlslVariableDeclarationNode implements GlslRootNode {
 
     private final List<GlslTypeQualifier> typeQualifiers;
     private final List<String> names;
@@ -28,6 +29,11 @@ public class GlslVariableDeclarationNode implements GlslRootNode {
     @Override
     public void visit(GlslNodeVisitor visitor) {
         visitor.visitVariableDeclaration(this);
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.VARIABLE_DECLARATION;
     }
 
     public List<GlslTypeQualifier> getTypeQualifiers() {

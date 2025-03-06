@@ -2,6 +2,9 @@ package io.github.ocelot.glslprocessor.core;
 
 import org.jetbrains.annotations.ApiStatus;
 
+/**
+ * @author Ocelot
+ */
 @ApiStatus.Internal
 class GlslStringReader {
 

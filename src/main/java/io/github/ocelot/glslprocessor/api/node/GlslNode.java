@@ -20,8 +20,6 @@ import java.util.stream.Stream;
 @ApiStatus.NonExtendable
 public interface GlslNode {
 
-    Pattern NEWLINE = Pattern.compile("\n");
-
     /**
      * @return This node represented as a string
      * @see GlslNodeStringWriter
@@ -38,6 +36,11 @@ public interface GlslNode {
      * @param visitor The visitor visiting this node
      */
     void visit(GlslNodeVisitor visitor);
+
+    /**
+     * @return The type of node this class represents
+     */
+    GlslNodeType getNodeType();
 
     /**
      * @return The type of this node if it is a field

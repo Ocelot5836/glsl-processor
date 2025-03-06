@@ -3,6 +3,7 @@ package io.github.ocelot.glslprocessor.api.node.expression;
 import io.github.ocelot.glslprocessor.api.grammar.GlslTypeQualifier;
 import io.github.ocelot.glslprocessor.api.grammar.GlslTypeSpecifier;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
 import java.util.stream.Stream;
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslPrecisionNode implements GlslNode {
+public final class GlslPrecisionNode implements GlslNode {
 
     private GlslTypeQualifier.Precision precision;
     private GlslTypeSpecifier typeSpecifier;
@@ -24,6 +25,11 @@ public class GlslPrecisionNode implements GlslNode {
     @Override
     public void visit(GlslNodeVisitor visitor) {
         visitor.visitPrecision(this);
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.PRECISION;
     }
 
     public GlslTypeQualifier.Precision getPrecision() {

@@ -3,6 +3,7 @@ package io.github.ocelot.glslprocessor.api.node.variable;
 import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.grammar.GlslStructSpecifier;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.node.GlslRootNode;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslStructDeclarationNode implements GlslRootNode {
+public final class GlslStructDeclarationNode implements GlslRootNode {
 
     private GlslSpecifiedType specifiedType;
 
@@ -26,6 +27,11 @@ public class GlslStructDeclarationNode implements GlslRootNode {
     @Override
     public void visit(GlslNodeVisitor visitor) {
         visitor.visitStructDeclaration(this);
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.STRUCT_DECLARATION;
     }
 
     public GlslSpecifiedType getSpecifiedType() {

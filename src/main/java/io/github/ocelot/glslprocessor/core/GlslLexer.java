@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  * @author Ocelot
  */
 @ApiStatus.Internal
-public final class GlslLexer {
+public class GlslLexer {
 
     private static final Pattern MULTI_COMMENT_PATTERN = Pattern.compile("/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*/");
 

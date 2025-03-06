@@ -57,7 +57,7 @@ public enum GlslNodeType {
     /**
      * Ternary operator: {@code A ? B : C}
      */
-    CONDITION,
+    CONDITIONAL,
     /**
      * GLSL precision: {@code precision highp float; precision lowp int;} etc
      */
@@ -81,9 +81,21 @@ public enum GlslNodeType {
     PRIMITIVE_CONSTRUCTOR,
 
     /**
-     * Boolean, double, int, and float constants: {@code float a = 4, uint test = 42}, etc
+     * Double constant: {@code double a = 4.0lf}, etc
      */
-    CONSTANT,
+    DOUBLE_CONSTANT,
+    /**
+     * Float constant: {@code float a = 4.0}, etc
+     */
+    FLOAT_CONSTANT,
+    /**
+     * Integer constant: {@code int a = 4}, etc
+     */
+    INT_CONSTANT,
+    /**
+     * Boolean constant: {@code bool a = false}, etc
+     */
+    BOOL_CONSTANT,
 
     /**
      * Variable Declaration: {@code float a, b, c, d}; etc

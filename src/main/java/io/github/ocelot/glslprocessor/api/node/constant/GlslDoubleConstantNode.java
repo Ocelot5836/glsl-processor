@@ -1,5 +1,7 @@
 package io.github.ocelot.glslprocessor.api.node.constant;
 
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
+
 /**
  * @author Ocelot
  * @since 1.0.0
@@ -29,5 +31,10 @@ public record GlslDoubleConstantNode(double value) implements GlslConstantNode {
     @Override
     public String toString() {
         return this.value + "lf";
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.DOUBLE_CONSTANT;
     }
 }

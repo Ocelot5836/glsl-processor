@@ -2,6 +2,7 @@ package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslNodeList;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslForLoopNode implements GlslNode {
+public final class GlslForLoopNode implements GlslNode {
 
     private GlslNode init;
     private GlslNode condition;
@@ -69,6 +70,11 @@ public class GlslForLoopNode implements GlslNode {
             }
             bodyVisitor.visitForLoopEnd(this);
         }
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.FOR_LOOP;
     }
 
     @Override

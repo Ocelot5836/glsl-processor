@@ -1,6 +1,7 @@
 package io.github.ocelot.glslprocessor.api.node.branch;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import io.github.ocelot.glslprocessor.api.visitor.GlslSwitchVisitor;
 
@@ -16,7 +17,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslSwitchNode implements GlslNode {
+public final class GlslSwitchNode implements GlslNode {
 
     private GlslNode condition;
     private final List<GlslNode> branches;
@@ -86,6 +87,11 @@ public class GlslSwitchNode implements GlslNode {
             }
             switchVisitor.visitSwitchEnd(this);
         }
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.SWITCH;
     }
 
     @Override

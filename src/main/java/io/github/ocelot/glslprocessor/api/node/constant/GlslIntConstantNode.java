@@ -1,5 +1,7 @@
 package io.github.ocelot.glslprocessor.api.node.constant;
 
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
+
 /**
  * @author Ocelot
  * @since 1.0.0
@@ -33,5 +35,10 @@ public record GlslIntConstantNode(GlslIntFormat format, boolean signed, int valu
             case OCTAL -> (this.value > 0 ? "0" : "") + Integer.toOctalString(this.value) + (this.signed ? "" : "u");
             case DECIMAL -> this.value + (this.signed ? "" : "u");
         };
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.INT_CONSTANT;
     }
 }

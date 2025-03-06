@@ -15,7 +15,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslBitwiseNode implements GlslNode {
+public final class GlslBitwiseNode implements GlslNode {
 
     private final List<GlslNode> expressions;
     private Operand operand;
@@ -86,6 +86,11 @@ public class GlslBitwiseNode implements GlslNode {
 
             bodyVisitor.visitBitwiseExpressionEnd(this);
         }
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return this.operand.getNodeType();
     }
 
     @Override

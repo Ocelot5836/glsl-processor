@@ -3,6 +3,7 @@ package io.github.ocelot.glslprocessor.api.node.variable;
 import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.grammar.GlslType;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
+import io.github.ocelot.glslprocessor.api.node.GlslNodeType;
 import io.github.ocelot.glslprocessor.api.node.GlslRootNode;
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +16,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslNewFieldNode implements GlslRootNode {
+public final class GlslNewFieldNode implements GlslRootNode {
 
     private GlslSpecifiedType type;
     private String name;
@@ -30,6 +31,11 @@ public class GlslNewFieldNode implements GlslRootNode {
     @Override
     public void visit(GlslNodeVisitor visitor) {
         visitor.visitNewField(this);
+    }
+
+    @Override
+    public GlslNodeType getNodeType() {
+        return GlslNodeType.NEW_FIELD;
     }
 
     @Override

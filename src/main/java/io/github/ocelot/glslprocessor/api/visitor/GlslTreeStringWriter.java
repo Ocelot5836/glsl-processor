@@ -16,7 +16,7 @@ import java.util.Map;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslTreeStringWriter extends GlslTreeVisitor {
+public final class GlslTreeStringWriter extends GlslTreeVisitor {
 
     private final Map<GlslNode, String> markedNodes;
     private final GlslNodeStringWriter visitor;
@@ -59,30 +59,30 @@ public class GlslTreeStringWriter extends GlslTreeVisitor {
     }
 
     @Override
-    public void visitNewField(GlslNewFieldNode newNode) {
-        String marker = this.markedNodes.get(newNode);
+    public void visitNewField(GlslNewFieldNode node) {
+        String marker = this.markedNodes.get(node);
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");
         }
-        this.builder.append(this.formatExpression(newNode));
+        this.builder.append(this.formatExpression(node));
     }
 
     @Override
-    public void visitStructDeclaration(GlslStructDeclarationNode structSpecifier) {
-        String marker = this.markedNodes.get(structSpecifier);
+    public void visitStructDeclaration(GlslStructDeclarationNode node) {
+        String marker = this.markedNodes.get(node);
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");
         }
-        this.builder.append(this.formatExpression(structSpecifier));
+        this.builder.append(this.formatExpression(node));
     }
 
     @Override
-    public void visitDeclaration(GlslVariableDeclarationNode declaration) {
-        String marker = this.markedNodes.get(declaration);
+    public void visitDeclaration(GlslVariableDeclarationNode node) {
+        String marker = this.markedNodes.get(node);
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");
         }
-        this.builder.append(this.formatExpression(declaration));
+        this.builder.append(this.formatExpression(node));
     }
 
     @Override

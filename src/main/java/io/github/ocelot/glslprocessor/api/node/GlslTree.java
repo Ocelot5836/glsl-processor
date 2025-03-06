@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  * @author Ocelot
  * @since 1.0.0
  */
-public class GlslTree {
+public final class GlslTree {
 
     private final GlslVersionStatement versionStatement;
     private final GlslNodeList body;
@@ -70,6 +70,11 @@ public class GlslTree {
         throw new AssertionError("Not Possible: " + node.getClass());
     }
 
+    /**
+     * Visits this GLSL file and all nodes inside.
+     *
+     * @param visitor The visitor instance
+     */
     public void visit(GlslTreeVisitor visitor) {
         visitor.visitMarkers(this.markers);
         visitor.visitVersion(this.versionStatement);
@@ -84,6 +89,7 @@ public class GlslTree {
             if (node instanceof GlslEmptyNode) {
                 continue;
             }
+            // Unwrap compound nodes
             if (node instanceof GlslCompoundNode compoundNode) {
                 for (GlslNode child : compoundNode.children) {
                     this.visit(visitor, child);
@@ -101,48 +107,51 @@ public class GlslTree {
      */
     public void markOutputs() {
         List<GlslNewFieldNode> outputs = new ArrayList<>();
-        this.fields().forEach(node -> {
-            GlslSpecifiedType type = node.getType();
-            boolean valid = false;
-            for (GlslTypeQualifier qualifier : type.getQualifiers()) {
-                if (qualifier == GlslTypeQualifier.StorageType.OUT) {
-                    valid = true;
-                    break;
+        this.visit(new GlslTreeVisitor() {
+            @Override
+            public void visitNewField(GlslNewFieldNode node) {
+                GlslSpecifiedType type = node.getType();
+                boolean valid = false;
+                for (GlslTypeQualifier qualifier : type.getQualifiers()) {
+                    if (qualifier == GlslTypeQualifier.StorageType.OUT) {
+                        valid = true;
+                        break;
+                    }
                 }
-            }
 
-            if (!valid) {
-                return;
-            }
+                if (!valid) {
+                    return;
+                }
 
-            for (GlslTypeQualifier qualifier : type.getQualifiers()) {
-                if (qualifier instanceof GlslTypeQualifier.Layout layout) {
-                    for (GlslTypeQualifier.LayoutId layoutId : layout.layoutIds()) {
-                        if (!"location".equals(layoutId.identifier())) {
-                            continue;
-                        }
-
-                        GlslNode expression = layoutId.expression();
-                        if (expression == null) {
-                            continue;
-                        }
-
-                        try {
-                            int location = Integer.parseInt(expression.toSourceString());
-                            if (location == 0) {
-                                outputs.clear();
-                                return;
+                for (GlslTypeQualifier qualifier : type.getQualifiers()) {
+                    if (qualifier instanceof GlslTypeQualifier.Layout layout) {
+                        for (GlslTypeQualifier.LayoutId layoutId : layout.layoutIds()) {
+                            if (!"location".equals(layoutId.identifier())) {
+                                continue;
                             }
-                            valid = false;
-                            break;
-                        } catch (NumberFormatException ignored) {
+
+                            GlslNode expression = layoutId.expression();
+                            if (expression == null) {
+                                continue;
+                            }
+
+                            try {
+                                int location = Integer.parseInt(expression.toSourceString());
+                                if (location == 0) {
+                                    outputs.clear();
+                                    return;
+                                }
+                                valid = false;
+                                break;
+                            } catch (NumberFormatException ignored) {
+                            }
                         }
                     }
                 }
-            }
 
-            if (valid) {
-                outputs.add(node);
+                if (valid) {
+                    outputs.add(node);
+                }
             }
         });
 
