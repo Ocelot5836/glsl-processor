@@ -8,7 +8,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -27,6 +26,7 @@ public interface GlslNode {
     default String toSourceString() {
         GlslNodeStringWriter visitor = new GlslNodeStringWriter(true);
         this.visit(visitor);
+        visitor.trimSemicolon();
         return visitor.toString();
     }
 

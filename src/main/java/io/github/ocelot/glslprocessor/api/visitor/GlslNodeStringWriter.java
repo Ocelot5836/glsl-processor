@@ -63,7 +63,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         this.builder.append(this.base).append(this.forceInline ? "}" : "}\n");
     }
 
-    private void deleteSemicolon() {
+    public void trimSemicolon() {
         if (this.builder.codePointAt(this.builder.length() - 1) == ';') {
             this.builder.deleteCharAt(this.builder.length() - 1);
         }
@@ -197,16 +197,16 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         this.builder.append(this.base).append(this.prefix);
         this.builder.append("for (");
         node.getInit().visit(inline);
-        this.deleteSemicolon();
-        this.deleteSemicolon();
+        this.trimSemicolon();
+        this.trimSemicolon();
         this.builder.append("; ");
         node.getCondition().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append(';');
         if (node.getIncrement() != null) {
             this.builder.append(' ');
             node.getIncrement().visit(inline);
-            this.deleteSemicolon();
+            this.trimSemicolon();
         }
         this.builder.append(this.forceInline ? ") {" : ") {\n");
 
@@ -250,7 +250,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
             this.accept("return", false, false);
         }
 
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.accept("", false, true);
     }
 
@@ -262,7 +262,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
                 GlslNodeStringWriter.this.addIndent();
                 GlslNodeStringWriter.this.accept("if(", true, false);
                 node.getExpression().visit(GlslNodeStringWriter.this.inline());
-                GlslNodeStringWriter.this.deleteSemicolon();
+                GlslNodeStringWriter.this.trimSemicolon();
                 GlslNodeStringWriter.this.accept(") {", false, false);
                 return GlslNodeStringWriter.this.indent();
             }
@@ -287,7 +287,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         this.addIndent();
         this.accept("switch(", true, false);
         node.getCondition().visit(this.inline());
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.accept(") {", false, false);
         GlslNodeStringWriter indent = GlslNodeStringWriter.this.indent();
         return new GlslSwitchVisitor() {
@@ -299,7 +299,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
                 } else {
                     indent.accept("case ", true, false);
                     node.getCondition().visit(indent.inline());
-                    GlslNodeStringWriter.this.deleteSemicolon();
+                    GlslNodeStringWriter.this.trimSemicolon();
                     indent.accept(":", false, false);
                 }
                 return indent.indent();
@@ -319,7 +319,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
             @Override
             public GlslNodeVisitor visitNode(int index) {
                 if (index != 0) {
-                    GlslNodeStringWriter.this.deleteSemicolon();
+                    GlslNodeStringWriter.this.trimSemicolon();
                     GlslNodeStringWriter.this.builder.append(' ').append(node.getOperand().getDelimiter()).append(' ');
                 }
                 return GlslNodeStringWriter.this.inline();
@@ -327,7 +327,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
 
             @Override
             public void visitBitwiseExpressionEnd(GlslBitwiseNode node) {
-                GlslNodeStringWriter.this.deleteSemicolon();
+                GlslNodeStringWriter.this.trimSemicolon();
                 GlslNodeStringWriter.this.builder.append(')');
             }
         };
@@ -338,12 +338,12 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         GlslNodeStringWriter inline = this.inline();
         this.addIndent();
         node.getFirst().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append(' ');
         this.builder.append(node.getOperand().getDelimiter());
         this.builder.append(' ');
         node.getSecond().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.accept("", false, true);
     }
 
@@ -353,12 +353,12 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         this.addIndent();
         this.builder.append('(');
         node.getFirst().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append(' ');
         this.builder.append(node.getOperand().getDelimiter());
         this.builder.append(' ');
         node.getSecond().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.accept(")", false, false);
     }
 
@@ -367,12 +367,12 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         GlslNodeStringWriter inline = this.inline();
         this.addIndent();
         node.getFirst().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append(' ');
         this.builder.append(node.getOperand().getDelimiter());
         this.builder.append(' ');
         node.getSecond().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.accept("", false, false);
     }
 
@@ -381,13 +381,13 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         GlslNodeStringWriter inline = this.inline();
         this.addIndent();
         node.getCondition().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append(" ? ");
         node.getFirst().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append(" : ");
         node.getSecond().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.accept("", false, false);
     }
 
@@ -421,14 +421,14 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
                     this.builder.append('(');
                 }
                 expression.visit(this.inline());
-                this.deleteSemicolon();
+                this.trimSemicolon();
                 if (!simple) {
                     this.builder.append(')');
                 }
             }
             case POST_INCREMENT, POST_DECREMENT -> {
                 expression.visit(this.inline());
-                this.deleteSemicolon();
+                this.trimSemicolon();
                 this.builder.append(operand.getDelimiter());
             }
         }
@@ -457,13 +457,13 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
             public void visitHeader() {
                 GlslNodeStringWriter.this.addIndent();
                 node.getHeader().visit(GlslNodeStringWriter.this.inline());
-                GlslNodeStringWriter.this.deleteSemicolon();
+                GlslNodeStringWriter.this.trimSemicolon();
                 GlslNodeStringWriter.this.builder.append('(');
             }
 
             @Override
             public GlslNodeVisitor visitParameter(int index) {
-                GlslNodeStringWriter.this.deleteSemicolon();
+                GlslNodeStringWriter.this.trimSemicolon();
                 if (index > 0) {
                     GlslNodeStringWriter.this.builder.append(", ");
                 }
@@ -472,7 +472,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
 
             @Override
             public void visitInvokeEnd(GlslInvokeFunctionNode node) {
-                GlslNodeStringWriter.this.deleteSemicolon();
+                GlslNodeStringWriter.this.trimSemicolon();
                 GlslNodeStringWriter.this.accept(")", false, true);
             }
         };
@@ -520,7 +520,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         if (!node.getNames().isEmpty()) {
             this.builder.delete(this.builder.length() - 2, this.builder.length());
         }
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.accept("", false, true);
     }
 
@@ -529,10 +529,10 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         GlslNodeStringWriter inline = this.inline();
         this.addIndent();
         node.getExpression().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append('[');
         node.getIndex().visit(inline);
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append(']');
     }
 
@@ -540,7 +540,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
     public void visitGetField(GlslGetFieldNode node) {
         this.addIndent();
         node.getExpression().visit(this.inline());
-        this.deleteSemicolon();
+        this.trimSemicolon();
         this.builder.append('.');
         this.builder.append(node.getFieldSelection());
     }
@@ -557,7 +557,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
             if (initializer != null) {
                 this.builder.append(" = ");
                 initializer.visit(this.inline());
-                this.deleteSemicolon();
+                this.trimSemicolon();
             }
         }
         this.accept("", false, true);

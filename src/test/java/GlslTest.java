@@ -441,4 +441,12 @@ public class GlslTest {
                     }
                 }""");
     }
+
+    @Test
+    void testMul() throws GlslSyntaxException {
+        this.testSpeed("""
+                void main() {
+                    vec3 a = texture(Sampler0,texCoord0) * vec3(1,0,1);
+                }""");
+    }
 }
