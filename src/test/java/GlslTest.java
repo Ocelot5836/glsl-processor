@@ -288,6 +288,7 @@ public class GlslTest {
         GlslTree tree = this.testSpeed("void mainImage(out vec4 z,vec2 I){z*=0.;for(vec3 R=iResolution;dot(z,z)<9.;z.z+=.1)z.xy=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+2.*(I+I-R.xy)/R.x;}");
 
         GlslFunctionNode mainImage = tree.functions().filter(fun -> fun.getHeader().getName().equals("mainImage")).findFirst().orElseThrow();
+        Assertions.assertNotNull(mainImage.getBody());
         mainImage.getBody().addAll(GlslParser.parseExpressionList("return 42;"));
 
         GlslTreeStringWriter writer = new GlslTreeStringWriter();
@@ -423,6 +424,20 @@ public class GlslTest {
                 void main() {
                     for (int i = 0; i < EndPortalLayers; i++) {
                 	    color += (textureProj(Sampler1, (texProj0 * end_portal_layer(float((i + 1))))).rgb * COLORS[i]);
+                    }
+                }""");
+    }
+
+    @Test
+    void testSwitch() throws GlslSyntaxException {
+        this.testSpeed("""
+                void main() {
+                    int a = 1;
+                    switch(a) {
+                        case 1:
+                            break;
+                        case 2:
+                            continue;
                     }
                 }""");
     }
