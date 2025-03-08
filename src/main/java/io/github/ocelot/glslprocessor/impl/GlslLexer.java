@@ -1,4 +1,4 @@
-package io.github.ocelot.glslprocessor.core;
+package io.github.ocelot.glslprocessor.impl;
 
 import io.github.ocelot.glslprocessor.api.GlslSyntaxException;
 import io.github.ocelot.glslprocessor.api.grammar.GlslTypeQualifier;
@@ -7,11 +7,12 @@ import io.github.ocelot.glslprocessor.api.node.expression.GlslAssignmentNode;
 import io.github.ocelot.glslprocessor.api.node.expression.GlslUnaryNode;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.function.ObjIntConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,18 +28,18 @@ public class GlslLexer {
         return createTokens(input, null);
     }
 
-    public static Token[] createTokens(String input, @Nullable BiConsumer<Integer, Token> commentConsumer) throws GlslSyntaxException {
+    public static Token[] createTokens(String input, @Nullable ObjIntConsumer<Token> commentConsumer) throws GlslSyntaxException {
         GlslStringReader reader = new GlslStringReader(input);
         List<Token> tokens = new ArrayList<>();
 
         reader.skipWhitespace();
         while (reader.canRead()) {
-            Token token = getToken(reader);
+            Token token = readToken(reader);
             if (token != null) {
                 if (token.type != TokenType.COMMENT && token.type != TokenType.MULTI_COMMENT) {
                     tokens.add(token);
                 } else if (commentConsumer != null) {
-                    commentConsumer.accept(tokens.size(), token);
+                    commentConsumer.accept(token, tokens.size());
                 }
                 reader.skipWhitespace();
                 continue;
@@ -50,12 +51,12 @@ public class GlslLexer {
         return tokens.toArray(Token[]::new);
     }
 
-    private static @Nullable Token getToken(GlslStringReader reader) {
+    private static @Nullable Token readToken(GlslStringReader reader) {
         int cursor = reader.cursor;
         String string = reader.string;
         char[] chars = reader.chars;
         char firstChar = chars[cursor];
-        boolean number = Character.isDigit(firstChar) || (firstChar == '.' && Character.isDigit(chars[cursor + 1]));
+        boolean number = Character.isDigit(firstChar) || (chars.length > 1 && firstChar == '.' && Character.isDigit(chars[cursor + 1]));
 
         // Special for directives
         if (firstChar == '#') {
@@ -67,7 +68,7 @@ public class GlslLexer {
             return new Token(TokenType.DIRECTIVE, string.substring(cursor, i));
         }
 
-        if (firstChar == '/') {
+        if (firstChar == '/' && chars.length > 1) {
             // Special for single-line comments
             if (chars[cursor + 1] == '/') {
                 int i = cursor + 2;
@@ -420,6 +421,11 @@ public class GlslLexer {
                 this.wordLengths = null;
                 this.chars = null;
             }
+        }
+
+        @VisibleForTesting
+        public String[] getWords() {
+            return this.words;
         }
 
         public @Nullable GlslTypeSpecifier.BuiltinType asBuiltinType() {

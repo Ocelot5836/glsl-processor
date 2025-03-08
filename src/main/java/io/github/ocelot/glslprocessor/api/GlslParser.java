@@ -2,9 +2,9 @@ package io.github.ocelot.glslprocessor.api;
 
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslTree;
-import io.github.ocelot.glslprocessor.core.GlslLexer;
-import io.github.ocelot.glslprocessor.core.GlslParserImpl;
-import io.github.ocelot.glslprocessor.core.GlslTokenReader;
+import io.github.ocelot.glslprocessor.impl.GlslLexer;
+import io.github.ocelot.glslprocessor.impl.GlslParserImpl;
+import io.github.ocelot.glslprocessor.impl.GlslTokenReader;
 import io.github.ocelot.glslprocessor.lib.anarres.cpp.LexerException;
 import org.jetbrains.annotations.ApiStatus;
 

@@ -1,3 +1,5 @@
+package io.github.ocelot.test;
+
 import io.github.ocelot.glslprocessor.api.GlslParser;
 import io.github.ocelot.glslprocessor.api.GlslSyntaxException;
 import io.github.ocelot.glslprocessor.api.grammar.GlslVersionStatement;
@@ -5,7 +7,6 @@ import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslTree;
 import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
 import io.github.ocelot.glslprocessor.api.visitor.GlslTreeStringWriter;
-import io.github.ocelot.glslprocessor.core.GlslLexer;
 import io.github.ocelot.glslprocessor.lib.anarres.cpp.LexerException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,54 +14,9 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.github.ocelot.test.GlslTestHelper.testSpeed;
+
 public class GlslTest {
-
-    private String toString(GlslLexer.Token[] tokens) {
-        StringBuilder build = new StringBuilder();
-        for (GlslLexer.Token token : tokens) {
-            build.append(token.value());
-            if (token.type() == GlslLexer.TokenType.COMMENT || token.type() == GlslLexer.TokenType.SEMICOLON) {
-                build.append('\n');
-            } else {
-                build.append(' ');
-            }
-        }
-        return build.toString();
-    }
-
-    private GlslTree testSpeed(String source) throws GlslSyntaxException {
-        return this.testSpeed(source, true);
-    }
-
-    private GlslTree testSpeed(String source, boolean preload) throws GlslSyntaxException {
-        if (preload) {
-            // Load classes
-            for (int i = 0; i < 10; i++) {
-                GlslTree tree = GlslParser.parse(source);
-                GlslTreeStringWriter stringWriter = new GlslTreeStringWriter();
-                tree.visit(stringWriter);
-            }
-        }
-
-        long start = System.nanoTime();
-        GlslTree tree = GlslParser.parse(source);
-        long parseEnd = System.nanoTime();
-
-        GlslTreeStringWriter stringWriter = new GlslTreeStringWriter();
-        tree.visit(stringWriter);
-        long end = System.nanoTime();
-
-        System.out.println(stringWriter);
-        System.out.printf("Took %.3fms to parse, %.3fms to stringify%n", (parseEnd - start) / 1_000_000.0F, (end - parseEnd) / 1_000_000.0F);
-
-        return tree;
-    }
-
-    @Test
-    void testLexer() throws GlslSyntaxException {
-        GlslLexer.Token[] tokens = GlslLexer.createTokens("float a = 4e2; // comment");
-        Assertions.assertEquals("float a = 4e2 ;\n", this.toString(tokens));
-    }
 
     @Test
     void testParser() throws GlslSyntaxException {
@@ -79,7 +35,7 @@ public class GlslTest {
 
     @Test
     void testSet() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 #version 330 core
                 
                 uniform vec4 color;
@@ -93,7 +49,7 @@ public class GlslTest {
 
     @Test
     void testCall() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 void main() {
                     vec4 baseColor = texture(DiffuseSampler0, texCoord);
                 }
@@ -102,7 +58,7 @@ public class GlslTest {
 
     @Test
     void testShader() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 #version 430 core
                 
                 uniform sampler2D DiffuseSampler0;
@@ -148,7 +104,7 @@ public class GlslTest {
 
     @Test
     void testReturn() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 #version 430 core
                 
                 vec3 test(inout vec3 test, int) {
@@ -159,7 +115,7 @@ public class GlslTest {
 
     @Test
     void testCompute() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 #version 430 core
                 
                 #extension GL_ARB_compute_shader : enable
@@ -234,7 +190,7 @@ public class GlslTest {
 
     @Test
     void testArray() throws GlslSyntaxException {
-        GlslTree tree = this.testSpeed("""
+        GlslTree tree = testSpeed("""
                 // #test
                 void main() {
                     // test not going to be detected
@@ -252,7 +208,7 @@ public class GlslTest {
 
     @Test
     void testPrimitiveArray() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 #version 150
                 
                 const vec3[] COLORS = vec3[](
@@ -285,7 +241,7 @@ public class GlslTest {
 
     @Test
     void testSmall() throws GlslSyntaxException {
-        GlslTree tree = this.testSpeed("void mainImage(out vec4 z,vec2 I){z*=0.;for(vec3 R=iResolution;dot(z,z)<9.;z.z+=.1)z.xy=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+2.*(I+I-R.xy)/R.x;}");
+        GlslTree tree = testSpeed("void mainImage(out vec4 z,vec2 I){z*=0.;for(vec3 R=iResolution;dot(z,z)<9.;z.z+=.1)z.xy=vec2(z.x*z.x-z.y*z.y,2.*z.x*z.y)+2.*(I+I-R.xy)/R.x;}");
 
         GlslFunctionNode mainImage = tree.functions().filter(fun -> fun.getHeader().getName().equals("mainImage")).findFirst().orElseThrow();
         Assertions.assertNotNull(mainImage.getBody());
@@ -298,7 +254,7 @@ public class GlslTest {
 
     @Test
     void testStruct() throws GlslSyntaxException {
-        GlslTree tree = this.testSpeed("""
+        GlslTree tree = testSpeed("""
                 out vec4 fragColor;
                 
                 flat struct AreaLightResult { vec3 position; float angle; };
@@ -315,7 +271,7 @@ public class GlslTest {
 
     @Test
     void testWeird() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 void main() {
                     int m0=x%2,m=m0+1;
                 }
@@ -324,7 +280,7 @@ public class GlslTest {
 
     @Test
     void testMatrix() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 void main() {
                     if (ProjMat[2][3] != 0.) {
                         shadeColor = vec4(0.);
@@ -361,7 +317,7 @@ public class GlslTest {
 
     @Test
     void testMatrix2() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 void main() {
                     vec3 size = Position * Distance;
                     size.x *= length(VeilCamera.ViewMat[0].xyz);// Basis vector X
@@ -373,7 +329,7 @@ public class GlslTest {
 
     @Test
     void testMethodMatrix() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 #version 150
                 
                 uniform sampler2D Sampler0;
@@ -420,7 +376,7 @@ public class GlslTest {
 
     @Test
     void testFor() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 void main() {
                     for (int i = 0; i < EndPortalLayers; i++) {
                 	    color += (textureProj(Sampler1, (texProj0 * end_portal_layer(float((i + 1))))).rgb * COLORS[i]);
@@ -430,7 +386,7 @@ public class GlslTest {
 
     @Test
     void testSwitch() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 void main() {
                     int a = 1;
                     switch(a) {
@@ -444,7 +400,7 @@ public class GlslTest {
 
     @Test
     void testMul() throws GlslSyntaxException {
-        this.testSpeed("""
+        testSpeed("""
                 void main() {
                     vec3 a = texture(Sampler0,texCoord0) * vec3(1,0,1);
                 }""");

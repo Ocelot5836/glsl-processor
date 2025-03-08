@@ -1,4 +1,4 @@
-package io.github.ocelot.glslprocessor.core;
+package io.github.ocelot.glslprocessor.impl;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;

@@ -1,4 +1,4 @@
-package io.github.ocelot.glslprocessor.core;
+package io.github.ocelot.glslprocessor.impl;
 
 import io.github.ocelot.glslprocessor.api.GlslSyntaxException;
 import io.github.ocelot.glslprocessor.api.grammar.*;

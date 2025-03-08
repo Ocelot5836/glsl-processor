@@ -1,4 +1,4 @@
-package io.github.ocelot.glslprocessor.core;
+package io.github.ocelot.glslprocessor.impl;
 
 import io.github.ocelot.glslprocessor.api.GlslSyntaxException;
 import io.github.ocelot.glslprocessor.api.node.GlslNode;
@@ -29,7 +29,7 @@ public class GlslTokenReader {
     public GlslTokenReader(String source) throws GlslSyntaxException {
         this.markers = new HashMap<>();
         this.markedNodes = new HashMap<>();
-        this.tokens = GlslLexer.createTokens(source, (index, comment) -> {
+        this.tokens = GlslLexer.createTokens(source, (comment, index) -> {
             String value = comment.value().substring(2);
             if (comment.type() == GlslLexer.TokenType.MULTI_COMMENT) {
                 value = value.substring(0, value.length() - 2);
