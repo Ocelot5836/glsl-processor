@@ -23,6 +23,10 @@ public class GlslTestHelper {
         return build.toString();
     }
 
+    public static GlslTree parseGlsl(String source) {
+        return assertDoesNotThrow(() -> GlslParser.parse(source));
+    }
+
     public static GlslLexer.Token[] lexGlsl(String source) {
         return assertDoesNotThrow(() -> GlslLexer.createTokens(source));
     }

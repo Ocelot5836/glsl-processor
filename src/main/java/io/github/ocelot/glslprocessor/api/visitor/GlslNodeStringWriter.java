@@ -9,6 +9,7 @@ import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
 import io.github.ocelot.glslprocessor.api.node.function.GlslInvokeFunctionNode;
 import io.github.ocelot.glslprocessor.api.node.function.GlslPrimitiveConstructorNode;
 import io.github.ocelot.glslprocessor.api.node.variable.*;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.Locale;
@@ -35,11 +36,13 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         this.forceInline = forceInline;
     }
 
-    private GlslNodeStringWriter indent() {
+    @ApiStatus.Internal
+    public GlslNodeStringWriter indent() {
         return new GlslNodeStringWriter(this.prefix + this.base, "\t", this.builder, this.forceInline);
     }
 
-    private GlslNodeStringWriter inline() {
+    @ApiStatus.Internal
+    public GlslNodeStringWriter inline() {
         return new GlslNodeStringWriter("", "", this.builder, true);
     }
 
@@ -61,12 +64,6 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
 
     private void acceptClosing() {
         this.builder.append(this.base).append(this.forceInline ? "}" : "}\n");
-    }
-
-    public void trimSemicolon() {
-        if (this.builder.codePointAt(this.builder.length() - 1) == ';') {
-            this.builder.deleteCharAt(this.builder.length() - 1);
-        }
     }
 
     private void visitTypeQualifier(GlslTypeQualifier qualifier) {
@@ -115,6 +112,12 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
             } else {
                 this.builder.append("[]");
             }
+        }
+    }
+
+    public void trimSemicolon() {
+        if (this.builder.codePointAt(this.builder.length() - 1) == ';') {
+            this.builder.deleteCharAt(this.builder.length() - 1);
         }
     }
 
@@ -195,7 +198,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         GlslNodeStringWriter inline = this.inline();
 
         this.builder.append(this.base).append(this.prefix);
-        this.builder.append("for (");
+        this.builder.append("for(");
         node.getInit().visit(inline);
         this.trimSemicolon();
         this.trimSemicolon();
@@ -220,7 +223,15 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
 
     @Override
     public GlslNodeVisitor visitWhileLoop(GlslWhileLoopNode node) {
-        return new GlslNodeStringWriter(this.base + this.prefix, "\t", this.builder, this.forceInline);
+        GlslNodeStringWriter inline = this.inline();
+
+        this.builder.append(this.base).append(this.prefix);
+        this.builder.append("while(");
+        node.getCondition().visit(inline);
+        this.trimSemicolon();
+        this.builder.append(this.forceInline ? ") {" : ") {\n");
+
+        return this.indent();
     }
 
     @Override
@@ -256,14 +267,15 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
 
     @Override
     public GlslIfVisitor visitIf(GlslIfNode node) {
+        this.addIndent();
+        this.accept("if(", true, false);
+        node.getExpression().visit(this.inline());
+        this.trimSemicolon();
+        this.accept(") {", false, false);
+
         return new GlslIfVisitor() {
             @Override
             public GlslNodeVisitor visitIf() {
-                GlslNodeStringWriter.this.addIndent();
-                GlslNodeStringWriter.this.accept("if(", true, false);
-                node.getExpression().visit(GlslNodeStringWriter.this.inline());
-                GlslNodeStringWriter.this.trimSemicolon();
-                GlslNodeStringWriter.this.accept(") {", false, false);
                 return GlslNodeStringWriter.this.indent();
             }
 
@@ -434,7 +446,6 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         }
     }
 
-    @Override
     public GlslNodeVisitor visitFunctionDeclaration(GlslFunctionNode node) {
         this.visitFunctionHeader(node.getHeader());
         this.accept(" {", false, false);
@@ -445,7 +456,6 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
         return this.indent();
     }
 
-    @Override
     public void visitFunctionDeclarationEnd(GlslFunctionNode node) {
         this.acceptClosing();
     }
