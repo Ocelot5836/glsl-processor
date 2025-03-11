@@ -118,6 +118,12 @@ public class GlslTokenReader {
         return true;
     }
 
+    public void assertEOF() throws GlslSyntaxException {
+        if (this.canRead()) {
+            throw this.error("Too many tokens provided");
+        }
+    }
+
     public GlslSyntaxException error(String error) {
         return new GlslSyntaxException(error, this.tokenString, this.getCursorOffset(this.cursor));
     }

@@ -59,7 +59,7 @@ public final class GlslTreeStringWriter extends GlslTreeVisitor {
     }
 
     @Override
-    public void visitNewField(GlslNewFieldNode node) {
+    public void visitNewField(int index, GlslNewFieldNode node) {
         String marker = this.markedNodes.get(node);
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");
@@ -68,7 +68,7 @@ public final class GlslTreeStringWriter extends GlslTreeVisitor {
     }
 
     @Override
-    public void visitStructDeclaration(GlslStructDeclarationNode node) {
+    public void visitStructDeclaration(int index, GlslStructDeclarationNode node) {
         String marker = this.markedNodes.get(node);
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");
@@ -77,7 +77,7 @@ public final class GlslTreeStringWriter extends GlslTreeVisitor {
     }
 
     @Override
-    public void visitDeclaration(GlslVariableDeclarationNode node) {
+    public void visitDeclaration(int index, GlslVariableDeclarationNode node) {
         String marker = this.markedNodes.get(node);
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");
@@ -86,7 +86,7 @@ public final class GlslTreeStringWriter extends GlslTreeVisitor {
     }
 
     @Override
-    public @Nullable GlslNodeVisitor visitFunction(GlslFunctionNode node) {
+    public @Nullable GlslNodeVisitor visitFunction(int index, GlslFunctionNode node) {
         String marker = this.markedNodes.get(node);
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");

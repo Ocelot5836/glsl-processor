@@ -91,6 +91,13 @@ public interface GlslNode {
 
     Stream<GlslNode> stream();
 
+    static Collection<GlslNode> unwrap(GlslNode node) {
+        if (node instanceof GlslCompoundNode compoundNode) {
+            return compoundNode.children;
+        }
+        return List.of(node);
+    }
+
     static GlslIntConstantNode intConstant(int value) {
         return new GlslIntConstantNode(GlslIntFormat.DECIMAL, true, value);
     }

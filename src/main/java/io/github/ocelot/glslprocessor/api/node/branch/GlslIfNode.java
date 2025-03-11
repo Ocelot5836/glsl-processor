@@ -17,18 +17,18 @@ import java.util.stream.Stream;
  */
 public final class GlslIfNode implements GlslNode {
 
-    private GlslNode expression;
+    private GlslNode condition;
     private final GlslNodeList first;
     private final GlslNodeList second;
 
-    public GlslIfNode(GlslNode expression, Collection<GlslNode> first, Collection<GlslNode> second) {
-        this.expression = expression;
+    public GlslIfNode(GlslNode condition, Collection<GlslNode> first, Collection<GlslNode> second) {
+        this.condition = condition;
         this.first = new GlslNodeList(first);
         this.second = new GlslNodeList(second);
     }
 
-    public GlslNode getExpression() {
-        return this.expression;
+    public GlslNode getCondition() {
+        return this.condition;
     }
 
     public GlslNodeList getFirst() {
@@ -39,8 +39,8 @@ public final class GlslIfNode implements GlslNode {
         return this.second;
     }
 
-    public void setExpression(GlslNode expression) {
-        this.expression = expression;
+    public void setCondition(GlslNode condition) {
+        this.condition = condition;
     }
 
     public GlslIfNode setFirst(Collection<GlslNode> first) {
@@ -98,12 +98,12 @@ public final class GlslIfNode implements GlslNode {
         }
 
         GlslIfNode that = (GlslIfNode) o;
-        return this.expression.equals(that.expression) && this.first.equals(that.first) && this.second.equals(that.second);
+        return this.condition.equals(that.condition) && this.first.equals(that.first) && this.second.equals(that.second);
     }
 
     @Override
     public int hashCode() {
-        int result = this.expression.hashCode();
+        int result = this.condition.hashCode();
         result = 31 * result + this.first.hashCode();
         result = 31 * result + this.second.hashCode();
         return result;
@@ -112,8 +112,8 @@ public final class GlslIfNode implements GlslNode {
     @Override
     public String toString() {
         return "GlslIfNode{" +
-                "expression=" + this.expression + ", " +
+                "condition=" + this.condition + ", " +
                 "first=" + this.first + ", " +
-                "branch=" + this.second + '}';
+                "second=" + this.second + '}';
     }
 }

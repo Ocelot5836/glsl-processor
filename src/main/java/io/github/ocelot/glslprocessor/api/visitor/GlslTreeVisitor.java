@@ -53,21 +53,21 @@ public class GlslTreeVisitor {
         }
     }
 
-    public void visitNewField(GlslNewFieldNode node) {
+    public void visitNewField(int index, GlslNewFieldNode node) {
         if (this.parent != null) {
-            this.parent.visitNewField(node);
+            this.parent.visitNewField(index, node);
         }
     }
 
-    public void visitStructDeclaration(GlslStructDeclarationNode node) {
+    public void visitStructDeclaration(int index, GlslStructDeclarationNode node) {
         if (this.parent != null) {
-            this.parent.visitStructDeclaration(node);
+            this.parent.visitStructDeclaration(index, node);
         }
     }
 
-    public void visitDeclaration(GlslVariableDeclarationNode node) {
+    public void visitDeclaration(int index, GlslVariableDeclarationNode node) {
         if (this.parent != null) {
-            this.parent.visitDeclaration(node);
+            this.parent.visitDeclaration(index, node);
         }
     }
 
@@ -77,8 +77,8 @@ public class GlslTreeVisitor {
      * @param node The node to visit
      * @return A visitor for the body or <code>null</code> to skip
      */
-    public @Nullable GlslNodeVisitor visitFunction(GlslFunctionNode node) {
-        return this.parent != null ? this.parent.visitFunction(node) : null;
+    public @Nullable GlslNodeVisitor visitFunction(int index, GlslFunctionNode node) {
+        return this.parent != null ? this.parent.visitFunction(index, node) : null;
     }
 
     /**
@@ -86,9 +86,9 @@ public class GlslTreeVisitor {
      *
      * @param node The node to visit
      */
-    public void visitFunctionEnd(GlslFunctionNode node) {
+    public void visitFunctionEnd(int index, GlslFunctionNode node) {
         if (this.parent != null) {
-            this.parent.visitFunctionEnd(node);
+            this.parent.visitFunctionEnd(index, node);
         }
     }
 

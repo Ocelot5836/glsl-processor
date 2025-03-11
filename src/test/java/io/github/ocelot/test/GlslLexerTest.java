@@ -1,4 +1,4 @@
-package io.github.ocelot.test.lexer;
+package io.github.ocelot.test;
 
 import io.github.ocelot.glslprocessor.impl.GlslLexer;
 import org.junit.jupiter.api.DynamicNode;

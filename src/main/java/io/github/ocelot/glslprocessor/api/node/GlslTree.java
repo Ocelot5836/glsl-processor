@@ -3,6 +3,8 @@ package io.github.ocelot.glslprocessor.api.node;
 import io.github.ocelot.glslprocessor.api.grammar.GlslSpecifiedType;
 import io.github.ocelot.glslprocessor.api.grammar.GlslTypeQualifier;
 import io.github.ocelot.glslprocessor.api.grammar.GlslVersionStatement;
+import io.github.ocelot.glslprocessor.api.match.GlslMatchResult;
+import io.github.ocelot.glslprocessor.api.match.GlslMatcher;
 import io.github.ocelot.glslprocessor.api.node.branch.GlslIfNode;
 import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
 import io.github.ocelot.glslprocessor.api.node.variable.GlslNewFieldNode;
@@ -11,6 +13,8 @@ import io.github.ocelot.glslprocessor.api.node.variable.GlslVariableDeclarationN
 import io.github.ocelot.glslprocessor.api.visitor.GlslNodeVisitor;
 import io.github.ocelot.glslprocessor.api.visitor.GlslTreeStringWriter;
 import io.github.ocelot.glslprocessor.api.visitor.GlslTreeVisitor;
+import io.github.ocelot.glslprocessor.impl.match.GlslSearcher;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -46,25 +50,45 @@ public final class GlslTree {
         this.macros = new HashMap<>();
     }
 
-    private void visit(GlslTreeVisitor visitor, GlslNode node) {
+    private void flatten() {
+        for (int i = 0; i < this.body.size(); i++) {
+            GlslNode node = this.body.get(i);
+            if (node instanceof GlslEmptyNode) {
+                this.body.remove(i);
+                i--;
+                continue;
+            }
+
+            if (node instanceof GlslCompoundNode compoundNode) {
+                this.body.remove(i);
+
+                List<GlslNode> children = compoundNode.children;
+                for (int j = children.size() - 1; j >= 0; j--) {
+                    this.body.add(j, children.get(j));
+                }
+            }
+        }
+    }
+
+    private void visit(GlslTreeVisitor visitor, int index, GlslNode node) {
         if (node instanceof GlslFunctionNode functionNode) {
-            GlslNodeVisitor functionVisitor = visitor.visitFunction(functionNode);
+            GlslNodeVisitor functionVisitor = visitor.visitFunction(index, functionNode);
             if (functionVisitor != null) {
                 functionNode.visit(functionVisitor);
             }
-            visitor.visitFunctionEnd(functionNode);
+            visitor.visitFunctionEnd(index, functionNode);
             return;
         }
         if (node instanceof GlslNewFieldNode newNode) {
-            visitor.visitNewField(newNode);
+            visitor.visitNewField(index, newNode);
             return;
         }
         if (node instanceof GlslStructDeclarationNode struct) {
-            visitor.visitStructDeclaration(struct);
+            visitor.visitStructDeclaration(index, struct);
             return;
         }
         if (node instanceof GlslVariableDeclarationNode declaration) {
-            visitor.visitDeclaration(declaration);
+            visitor.visitDeclaration(index, declaration);
             return;
         }
         throw new AssertionError("Not Possible: " + node.getClass());
@@ -76,6 +100,8 @@ public final class GlslTree {
      * @param visitor The visitor instance
      */
     public void visit(GlslTreeVisitor visitor) {
+        this.flatten(); // Make sure the tree is flattened
+
         visitor.visitMarkers(this.markers);
         visitor.visitVersion(this.versionStatement);
         for (String directive : this.directives) {
@@ -85,18 +111,12 @@ public final class GlslTree {
             visitor.visitMacro(entry.getKey(), entry.getValue());
         }
 
-        for (GlslNode node : this.body) {
-            if (node instanceof GlslEmptyNode) {
-                continue;
+        for (int i = 0; i < this.body.size(); i++) {
+            GlslNode node = this.body.get(i);
+            if (node instanceof GlslEmptyNode || node instanceof GlslCompoundNode) {
+                throw new AssertionError();
             }
-            // Unwrap compound nodes
-            if (node instanceof GlslCompoundNode compoundNode) {
-                for (GlslNode child : compoundNode.children) {
-                    this.visit(visitor, child);
-                }
-                continue;
-            }
-            this.visit(visitor, node);
+            this.visit(visitor, i, node);
         }
 
         visitor.visitTreeEnd(this);
@@ -109,7 +129,7 @@ public final class GlslTree {
         List<GlslNewFieldNode> outputs = new ArrayList<>();
         this.visit(new GlslTreeVisitor() {
             @Override
-            public void visitNewField(GlslNewFieldNode node) {
+            public void visitNewField(int index, GlslNewFieldNode node) {
                 GlslSpecifiedType type = node.getType();
                 boolean valid = false;
                 for (GlslTypeQualifier qualifier : type.getQualifiers()) {
@@ -158,6 +178,71 @@ public final class GlslTree {
         for (GlslNewFieldNode output : outputs) {
             output.getType().addLayoutId("location", GlslNode.intConstant(0));
         }
+    }
+
+    /**
+     * Extracts nodes from the tree by traversing down the structure.
+     *
+     * @param filter The filters to apply in order
+     * @return The nodes found from the tree
+     */
+    @ApiStatus.Experimental
+    public GlslMatchResult get(GlslMatcher... filter) {
+        if (filter.length == 0) {
+            List<GlslSearcher.Result> results = new ArrayList<>(this.body.size());
+            for (int i = 0; i < this.body.size(); i++) {
+                int replaceIndex = i;
+                results.add(new GlslSearcher.Result(replace -> this.body.set(replaceIndex, replace != null ? replace : GlslEmptyNode.INSTANCE), this.body.get(i)));
+            }
+            return new GlslMatchResult(results);
+        }
+
+        List<GlslSearcher.Result> found = new ArrayList<>();
+        GlslSearcher searcher = new GlslSearcher(found, 1, filter);
+        GlslTreeVisitor visitor = new GlslTreeVisitor() {
+            @Override
+            public void visitNewField(int index, GlslNewFieldNode node) {
+                // TODO
+            }
+
+            @Override
+            public void visitStructDeclaration(int index, GlslStructDeclarationNode node) {
+                // TODO
+            }
+
+            @Override
+            public void visitDeclaration(int index, GlslVariableDeclarationNode node) {
+                // TODO
+            }
+
+            @Override
+            public @Nullable GlslNodeVisitor visitFunction(int index, GlslFunctionNode node) {
+                if (filter[0] instanceof GlslMatcher.FunctionMatcher matcher) {
+                    if (matcher.matches(node)) {
+                        if (filter.length == 1) {
+                            found.add(new GlslSearcher.Result(replace -> GlslTree.this.body.set(index, replace), node));
+                            return null;
+                        }
+
+                        return searcher;
+                    }
+                }
+                return null;
+            }
+        };
+        this.visit(visitor);
+        return new GlslMatchResult(found);
+    }
+
+    /**
+     * Performs a code replacement with the specified replacement
+     *
+     * @param method     The method to replace code in or <code>null</code> to replace code in the first level
+     * @param targetType The expected type to target
+     * @param replace
+     */
+    public void replace(@Nullable String method, @Nullable GlslNodeType targetType, int index, String target, String replace) {
+
     }
 
     public Optional<GlslFunctionNode> mainFunction() {

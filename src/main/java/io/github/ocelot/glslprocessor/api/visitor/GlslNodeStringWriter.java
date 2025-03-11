@@ -269,7 +269,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
     public GlslIfVisitor visitIf(GlslIfNode node) {
         this.addIndent();
         this.accept("if(", true, false);
-        node.getExpression().visit(this.inline());
+        node.getCondition().visit(this.inline());
         this.trimSemicolon();
         this.accept(") {", false, false);
 

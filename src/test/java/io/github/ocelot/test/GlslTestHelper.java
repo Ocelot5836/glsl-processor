@@ -2,16 +2,18 @@ package io.github.ocelot.test;
 
 import io.github.ocelot.glslprocessor.api.GlslParser;
 import io.github.ocelot.glslprocessor.api.GlslSyntaxException;
+import io.github.ocelot.glslprocessor.api.node.GlslNode;
 import io.github.ocelot.glslprocessor.api.node.GlslTree;
 import io.github.ocelot.glslprocessor.api.visitor.GlslTreeStringWriter;
 import io.github.ocelot.glslprocessor.impl.GlslLexer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-public class GlslTestHelper {
+public final class GlslTestHelper {
 
     private static final boolean PRELOAD = true;
 
@@ -23,8 +25,16 @@ public class GlslTestHelper {
         return build.toString();
     }
 
-    public static GlslTree parseGlsl(String source) {
+    public static GlslTree parseGlslTree(String source) {
         return assertDoesNotThrow(() -> GlslParser.parse(source));
+    }
+
+    public static GlslNode parseGlslExpression(String source) {
+        return assertDoesNotThrow(() -> GlslParser.parseExpression(source));
+    }
+
+    public static List<GlslNode> parseGlslExpressionList(String source) {
+        return assertDoesNotThrow(() -> GlslParser.parseExpressionList(source));
     }
 
     public static GlslLexer.Token[] lexGlsl(String source) {
