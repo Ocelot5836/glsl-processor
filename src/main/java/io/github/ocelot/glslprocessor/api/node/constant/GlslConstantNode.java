@@ -27,12 +27,16 @@ public interface GlslConstantNode extends GlslNode {
     }
 
     default long unsignedIntValue() {
-        return Integer.toUnsignedLong(this.numberValue().intValue());
+        return Integer.toUnsignedLong(this.intValue());
     }
 
     boolean booleanValue();
 
     boolean isNumber();
+
+    void set(Number value);
+
+    void set(boolean value);
 
     @Override
     default void visit(GlslNodeVisitor visitor) {

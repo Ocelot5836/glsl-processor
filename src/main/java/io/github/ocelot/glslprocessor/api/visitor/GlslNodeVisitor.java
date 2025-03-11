@@ -3,7 +3,6 @@ package io.github.ocelot.glslprocessor.api.visitor;
 import io.github.ocelot.glslprocessor.api.node.branch.*;
 import io.github.ocelot.glslprocessor.api.node.constant.GlslConstantNode;
 import io.github.ocelot.glslprocessor.api.node.expression.*;
-import io.github.ocelot.glslprocessor.api.node.function.GlslFunctionNode;
 import io.github.ocelot.glslprocessor.api.node.function.GlslInvokeFunctionNode;
 import io.github.ocelot.glslprocessor.api.node.function.GlslPrimitiveConstructorNode;
 import io.github.ocelot.glslprocessor.api.node.variable.*;
@@ -184,27 +183,6 @@ public class GlslNodeVisitor {
     public void visitUnary(GlslUnaryNode node) {
         if (this.parent != null) {
             this.parent.visitUnary(node);
-        }
-    }
-
-    /**
-     * Visits the specified function declaration statement.
-     *
-     * @param node The node to visit
-     * @return A visitor for the body or <code>null</code> to skip
-     */
-    public @Nullable GlslNodeVisitor visitFunctionDeclaration(GlslFunctionNode node) {
-        return this.parent != null ? this.parent.visitFunctionDeclaration(node) : null;
-    }
-
-    /**
-     * Visits the specified function declaration end statement.
-     *
-     * @param node The node to visit
-     */
-    public void visitFunctionDeclarationEnd(GlslFunctionNode node) {
-        if (this.parent != null) {
-            this.parent.visitFunctionDeclarationEnd(node);
         }
     }
 

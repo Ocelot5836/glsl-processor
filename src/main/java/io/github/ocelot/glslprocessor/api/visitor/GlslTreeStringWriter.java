@@ -91,7 +91,13 @@ public final class GlslTreeStringWriter extends GlslTreeVisitor {
         if (marker != null) {
             this.builder.append("/* #").append(marker).append(" */\n");
         }
-        this.builder.append(this.formatExpression(node));
+
+        this.visitor.clear();
+        this.visitor.visitFunctionDeclaration(node);
+        node.visit(this.visitor.indent());
+        this.visitor.visitFunctionDeclarationEnd(node);
+        this.builder.append(this.visitor);
+
         return null;
     }
 

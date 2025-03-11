@@ -71,10 +71,21 @@ public class GlslTreeVisitor {
         }
     }
 
+    /**
+     * Visits the specified function declaration statement.
+     *
+     * @param node The node to visit
+     * @return A visitor for the body or <code>null</code> to skip
+     */
     public @Nullable GlslNodeVisitor visitFunction(GlslFunctionNode node) {
         return this.parent != null ? this.parent.visitFunction(node) : null;
     }
 
+    /**
+     * Visits the specified function declaration end statement.
+     *
+     * @param node The node to visit
+     */
     public void visitFunctionEnd(GlslFunctionNode node) {
         if (this.parent != null) {
             this.parent.visitFunctionEnd(node);

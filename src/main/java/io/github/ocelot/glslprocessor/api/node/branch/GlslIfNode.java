@@ -59,10 +59,12 @@ public final class GlslIfNode implements GlslNode {
     public void visit(GlslNodeVisitor visitor) {
         GlslIfVisitor bodyVisitor = visitor.visitIf(this);
         if (bodyVisitor != null) {
-            GlslNodeVisitor ifVisitor = bodyVisitor.visitIf();
-            if (ifVisitor != null) {
-                for (GlslNode node : this.first) {
-                    node.visit(ifVisitor);
+            if (!this.first.isEmpty()) {
+                GlslNodeVisitor ifVisitor = bodyVisitor.visitIf();
+                if (ifVisitor != null) {
+                    for (GlslNode node : this.first) {
+                        node.visit(ifVisitor);
+                    }
                 }
             }
 
@@ -109,7 +111,7 @@ public final class GlslIfNode implements GlslNode {
 
     @Override
     public String toString() {
-        return "GlslSelectionNode{" +
+        return "GlslIfNode{" +
                 "expression=" + this.expression + ", " +
                 "first=" + this.first + ", " +
                 "branch=" + this.second + '}';

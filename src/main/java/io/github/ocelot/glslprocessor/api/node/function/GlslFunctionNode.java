@@ -34,12 +34,8 @@ public final class GlslFunctionNode implements GlslRootNode {
 
     @Override
     public void visit(GlslNodeVisitor visitor) {
-        GlslNodeVisitor bodyVisitor = visitor.visitFunctionDeclaration(this);
-        if (bodyVisitor != null) {
-            for (GlslNode node : this.body) {
-                node.visit(bodyVisitor);
-            }
-            bodyVisitor.visitFunctionDeclarationEnd(this);
+        for (GlslNode node : this.body) {
+            node.visit(visitor);
         }
     }
 
