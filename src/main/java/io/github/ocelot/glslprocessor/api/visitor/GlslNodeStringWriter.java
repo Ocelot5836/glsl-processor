@@ -108,6 +108,7 @@ public final class GlslNodeStringWriter extends GlslNodeVisitor {
             if (size != null) {
                 this.builder.append('[');
                 size.visit(this.inline());
+                this.trimSemicolon();
                 this.builder.append("]");
             } else {
                 this.builder.append("[]");

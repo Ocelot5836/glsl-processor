@@ -405,4 +405,15 @@ public class GlslTest {
                     vec3 a = texture(Sampler0,texCoord0) * vec3(1,0,1);
                 }""");
     }
+
+    @Test
+    void testArraySemicolon() throws GlslSyntaxException {
+        testSpeed("""
+                layout(binding = 1) readonly buffer shadowData {
+                    vec2 shadowViewBoundsMin;
+                    vec2 shadowViewBoundsMax;
+                    vec2 pcfDiskOffset[max(6, 4)];
+                    vec2 pcssDiskOffset[max(6, 4)];
+                };""");
+    }
 }
